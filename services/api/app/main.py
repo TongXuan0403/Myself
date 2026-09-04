@@ -1,89 +1,27 @@
-from datetime import datetime, timezone
-from pathlib import Path
-import sqlite3
-from typing import Literal
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
-Status = Literal["draft", "published"]
+from .models import Article, ArticleCreate, ArticleStatusUpdate, ArticleUpdate, DashboardSummary, Status
+from .store import (
+    create_article,
+    dashboard_summary,
+    delete_article,
+    fetch_article,
+    fetch_article_by_slug,
+    initialize_database,
+    list_articles,
+    set_article_status,
+    update_article,
+)
 
-
-class Article(BaseModel):
-    id: int
-    title: str = Field(min_length=1, max_length=180)
-    slug: str = Field(min_length=1, max_length=180)
-    category: str = Field(min_length=1, max_length=40)
-    status: Status = "draft"
-    excerpt: str = Field(default="", max_length=300)
-    content: str = ""
-    updated_at: str
-
-
-class ArticleInput(BaseModel):
-    title: str = Field(min_length=1, max_length=180)
-    slug: str = Field(min_length=1, max_length=180)
-    category: str = Field(min_length=1, max_length=40)
-    status: Status = "draft"
-    excerpt: str = Field(default="", max_length=300)
-    content: str = ""
-
-
-app = FastAPI(title="Myself Blog Publishing API", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://localhost:4321"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-
-DATABASE_PATH = Path(__file__).resolve().parents[1] / ".data" / "articles.db"
-SEED_ARTICLE = {
-    "title": "从零实现一个个人博客",
-    "slug": "build-personal-blog",
-    "category": "项目实战",
-    "status": "published",
-    "excerpt": "记录博客从设计到部署的过程。",
-    "content": "# 从零实现一个个人博客\n\n记录实现过程。",
-}
-
-
-def now() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def connect() -> sqlite3.Connection:
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
-    return connection
-
-
-def initialize_database() -> None:
-    with connect() as connection:
-        connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS articles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                slug TEXT NOT NULL UNIQUE,
-                category TEXT NOT NULL,
-                status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
-                excerpt TEXT NOT NULL DEFAULT '',
-                content TEXT NOT NULL DEFAULT '',
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        if connection.execute("SELECT 1 FROM articles LIMIT 1").fetchone() is None:
-            connection.execute(
-                """
-                INSERT INTO articles (title, slug, category, status, excerpt, content, updated_at)
-                VALUES (:title, :slug, :category, :status, :excerpt, :content, :updated_at)
-                """,
-                {**SEED_ARTICLE, "updated_at": now()},
-            )
-
-
-def to_article(row: sqlite3.Row) -> Article:
-    return Article(**dict(row))
-
+app = FastAPI(title="Myself Blog Publishing API", version="0.2.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:4321"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 initialize_database()
 
@@ -93,55 +31,82 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "publishing-api"}
 
 
+@app.get("/api/dashboard/summary", response_model=DashboardSummary)
+def get_dashboard_summary() -> DashboardSummary:
+    return dashboard_summary()
+
+
 @app.get("/api/articles", response_model=list[Article])
-def list_articles() -> list[Article]:
-    with connect() as connection:
-        rows = connection.execute("SELECT * FROM articles ORDER BY updated_at DESC").fetchall()
-    return [to_article(row) for row in rows]
+def get_articles(
+    status: Status | None = Query(default=None),
+    q: str | None = Query(default=None, description="Search by title, slug, category, excerpt, or content"),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> list[Article]:
+    return list_articles(status=status, query=q, limit=limit, offset=offset)
+
+
+@app.get("/api/articles/{article_id}", response_model=Article)
+def get_article(article_id: int) -> Article:
+    try:
+        return fetch_article(article_id)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
+
+
+@app.get("/api/articles/slug/{slug}", response_model=Article)
+def get_article_by_slug(slug: str) -> Article:
+    try:
+        return fetch_article_by_slug(slug.strip().lower())
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
 
 
 @app.post("/api/articles", response_model=Article, status_code=201)
-def create_article(payload: ArticleInput) -> Article:
-    values = {**payload.model_dump(), "updated_at": now()}
+def post_article(payload: ArticleCreate) -> Article:
     try:
-        with connect() as connection:
-            cursor = connection.execute(
-                """
-                INSERT INTO articles (title, slug, category, status, excerpt, content, updated_at)
-                VALUES (:title, :slug, :category, :status, :excerpt, :content, :updated_at)
-                """,
-                values,
-            )
-            article_id = cursor.lastrowid
-    except sqlite3.IntegrityError as error:
-        raise HTTPException(status_code=409, detail="Article slug already exists") from error
-    return Article(id=article_id, **values)
+        return create_article(payload)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
 
 @app.put("/api/articles/{article_id}", response_model=Article)
-def update_article(article_id: int, payload: ArticleInput) -> Article:
-    values = {**payload.model_dump(), "updated_at": now(), "id": article_id}
+def put_article(article_id: int, payload: ArticleUpdate) -> Article:
     try:
-        with connect() as connection:
-            result = connection.execute(
-                """
-                UPDATE articles
-                SET title = :title, slug = :slug, category = :category, status = :status,
-                    excerpt = :excerpt, content = :content, updated_at = :updated_at
-                WHERE id = :id
-                """,
-                values,
-            )
-            if result.rowcount == 0:
-                raise HTTPException(status_code=404, detail="Article not found")
-    except sqlite3.IntegrityError as error:
-        raise HTTPException(status_code=409, detail="Article slug already exists") from error
-    return Article(**values)
+        return update_article(article_id, payload)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@app.patch("/api/articles/{article_id}/status", response_model=Article)
+def patch_article_status(article_id: int, payload: ArticleStatusUpdate) -> Article:
+    try:
+        return set_article_status(article_id, payload.status)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
+
+
+@app.post("/api/articles/{article_id}/publish", response_model=Article)
+def publish_article(article_id: int) -> Article:
+    try:
+        return set_article_status(article_id, "published")
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
+
+
+@app.post("/api/articles/{article_id}/draft", response_model=Article)
+def draft_article(article_id: int) -> Article:
+    try:
+        return set_article_status(article_id, "draft")
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
 
 
 @app.delete("/api/articles/{article_id}", status_code=204)
-def delete_article(article_id: int) -> None:
-    with connect() as connection:
-        result = connection.execute("DELETE FROM articles WHERE id = ?", (article_id,))
-        if result.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Article not found")
+def remove_article(article_id: int) -> None:
+    try:
+        delete_article(article_id)
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
