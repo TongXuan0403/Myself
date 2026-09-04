@@ -5,7 +5,7 @@
 ## 当前进展
 
 - 已建立项目协作规则：见 [AGENTS.md](AGENTS.md)
-- 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](BLOG_DESIGN_REQUIREMENTS.md)
+- 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 当前阶段：设计需求整理，尚未开始应用代码实现
 
 ## 设计方向
@@ -25,4 +25,4 @@
 3. 完成自动发布、分享图片、RSS、SEO 和部署流程规划。
 4. 后续按设计需求文档分阶段实现并持续更新本文档。
 
-详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](BLOG_DESIGN_REQUIREMENTS.md)。
+详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)。
