@@ -1,0 +1,20 @@
+---
+import type { HomeHighlight } from "../data/home";
+
+const { items } = Astro.props as { items: HomeHighlight[] };
+---
+
+<section class="stream" id="writing">
+  <div class="section-label"><span>SELECTED NOTES</span><span>01 / 03</span></div>
+  {items.map((item) => (
+    <article>
+      <span class="index">{item.number}</span>
+      <div>
+        <small>{item.type}</small>
+        <h2>{item.title}</h2>
+        <p>{item.description}</p>
+      </div>
+      <span class="arrow">↗</span>
+    </article>
+  ))}
+</section>

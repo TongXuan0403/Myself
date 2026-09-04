@@ -1,41 +1,35 @@
 ---
-const highlights = [
-  { number: "01", type: "BUILD LOG", title: "从零实现个人博客", description: "记录架构、界面和自动发布流程。" },
-  { number: "02", type: "FIELD NOTE", title: "把问题写成可复用的东西", description: "保留背景、过程、失败和最终结论。" },
-  { number: "03", type: "PROJECT", title: "个人知识档案馆", description: "正在构建中的第一代内容站点。" }
-];
+import HomeAbout from "../components/HomeAbout.astro";
+import HomeStatement from "../components/HomeStatement.astro";
+import HomeStream from "../components/HomeStream.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { homeHighlights, homeMeta } from "../data/home";
 ---
 
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>TX / Field Notes</title>
-    <meta name="description" content="记录代码、项目和持续构建中的想法。" />
-  </head>
-  <body>
-    <header>
-      <a href="/">TX / FIELD NOTES</a>
-      <nav aria-label="主导航"><a href="#writing">文章</a><a href="#projects">项目</a><a href="#about">关于</a></nav>
-    </header>
-    <main>
-      <section class="hero">
-        <p class="kicker">PERSONAL TECHNICAL ARCHIVE · 001</p>
-        <h1>把想法写成<br /><em>可以复用的东西。</em></h1>
-        <p class="intro">记录后端开发、前端实践、AI 工具实验，以及在真实项目里解决过的问题。</p>
-        <a class="button" href="#writing">开始阅读 ↘</a>
-      </section>
-      <section class="stream" id="writing">
-        <div class="section-label"><span>SELECTED NOTES</span><span>01 / 03</span></div>
-        {highlights.map((item) => <article><span class="index">{item.number}</span><div><small>{item.type}</small><h2>{item.title}</h2><p>{item.description}</p></div><span class="arrow">↗</span></article>)}
-      </section>
-      <section class="statement" id="projects"><p class="kicker">NOW BUILDING</p><h2>内容优先，视觉表达，<em>自动发布。</em></h2><p>第一代公开站点使用 Astro 静态生成，独立发布后台负责草稿、预览和发布。</p></section>
-      <section class="about" id="about"><span>TX</span><div><p class="kicker">A LITTLE ABOUT ME</p><h2>学习、构建、分享。</h2><p>这里不是结论陈列室，更像一张持续更新的工作台。</p></div></section>
-    </main>
-    <footer>© 2026 TX / Field Notes</footer>
-  </body>
-</html>
+<BaseLayout title={homeMeta.title} description={homeMeta.description}>
+  <section class="hero">
+    <p class="kicker">{homeMeta.heroKicker}</p>
+    <h1>
+      {homeMeta.heroTitleLeading}
+      <em>{homeMeta.heroTitleEmphasis}</em>
+    </h1>
+    <p class="intro">{homeMeta.heroDescription}</p>
+    <a class="button" href="#writing">
+      开始阅读 ↘
+    </a>
+  </section>
+  <HomeStream items={homeHighlights} />
+  <HomeStatement
+    kicker="NOW BUILDING"
+    title="内容优先，视觉表达，"
+    description="第一代公开站点使用 Astro 静态生成，独立发布后台负责草稿、预览和发布。"
+  />
+  <HomeAbout
+    kicker="A LITTLE ABOUT ME"
+    title="学习、构建、分享。"
+    description="这里不是结论陈列室，更像一张持续更新的工作台。"
+  />
+</BaseLayout>
 
 <style>
   :global(*) { box-sizing: border-box; }

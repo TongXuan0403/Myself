@@ -1,0 +1,13 @@
+---
+const navItems = [
+  { href: '#writing', label: '文章' },
+  { href: '#projects', label: '项目' },
+  { href: '#about', label: '关于' },
+];
+---
+<header>
+  <a href="/">TX / FIELD NOTES</a>
+  <nav aria-label="主导航">
+    {navItems.map((item) => <a href={item.href}>{item.label}</a>)}
+  </nav>
+</header>

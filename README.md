@@ -8,7 +8,7 @@
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
-- 当前阶段：第一代工程骨架已建立，API 已补齐文章详情、搜索、草稿/发布切换和后台汇总能力，正在推进前后台联调
+- 当前阶段：前后端骨架已按职责拆分，API 已补齐文章详情、搜索、草稿/发布切换和后台汇总能力，正在推进前后台联调
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
 ## 设计方向
@@ -35,8 +35,9 @@
 8. 确定第一代采用“公开博客站点 + 独立文章发布后台”的双应用结构。
 9. 建立后续版本路线图，留存评论、订阅、数据分析、多作者、在线代码和 AI 辅助等延期能力。
 10. 建立 `apps/site` Astro 公开站点、`apps/admin` 独立发布后台 UI 和 `services/api` FastAPI 接口；后台当前使用本地状态演示文章编辑、草稿和发布交互，API 已接入 SQLite CRUD，尚未接入登录和 GitHub 自动提交。
-11. 将后端 API 重构为模型层、存储层和路由层，补齐文章详情、按条件搜索、草稿/发布切换、发布动作和后台汇总接口。
-12. 整理项目目录，将设计、路线图和进度文档统一放入 `docs`，并补充当前工程状态和下一步实施顺序。
+11. 将前端后台拆分为页面壳、组件、数据、hooks 和类型层，并把公开站点拆成 layout、组件和数据层。
+12. 将后端 API 重构为模型层、存储层、配置层和路由层，补齐文章详情、按条件搜索、草稿/发布切换、发布动作和后台汇总接口。
+13. 整理项目目录，将设计、路线图和进度文档统一放入 `docs`，并补充当前工程状态和下一步实施顺序。
 
 Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/demo/`。
 
@@ -45,12 +46,23 @@ Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在
 ## 当前工程结构
 
 ```text
-apps/site       # Astro 公开博客站点
-apps/admin      # React + Vite 独立发布后台
-services/api    # FastAPI + SQLite 发布接口
-demo            # 独立静态视觉 Demo，仅用于参考
-docs            # 设计需求、路线图和项目进度
-AGENTS.md       # 项目协作与交付规则
+apps/site                 # Astro 公开博客站点
+├── src/layouts/          # 页面外壳
+├── src/components/       # 首页区块和公共组件
+├── src/data/             # 首页文案和展示数据
+├── src/content/          # 内容目录占位
+└── src/pages/            # 页面入口
+apps/admin                # React + Vite 独立发布后台
+├── src/App.tsx           # 页面组合入口
+├── src/components/       # 侧边栏、顶部栏、列表、编辑器和提示
+├── src/data/             # 本地演示数据
+├── src/hooks/            # 工作区状态
+└── src/types/            # 文章类型定义
+services/api              # FastAPI + SQLite 发布接口
+└── app/                  # 配置、模型、路由和存储
+demo                      # 独立静态视觉 Demo，仅用于参考
+docs                      # 设计需求、路线图、结构和项目进度
+AGENTS.md                 # 项目协作与交付规则
 ```
 
 ## 本地启动
@@ -59,6 +71,7 @@ AGENTS.md       # 项目协作与交付规则
 npm install
 npm run dev:site
 npm run dev:admin
+npm run dev:api
 ```
 
 API 服务：

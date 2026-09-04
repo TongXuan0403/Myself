@@ -8,17 +8,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@astrojs/check": "0.9.10",
-    "@vitejs/plugin-react": "latest",
-    "astro": "7.3.1",
     "lucide-react": "latest",
     "react": "latest",
-    "react-dom": "latest",
-    "typescript": "6.0.3",
-    "vite": "latest"
+    "react-dom": "latest"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "latest",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.7"
+    "@types/react-dom": "19.2.7",
+    "typescript": "6.0.3",
+    "vite": "latest"
   }
 }
