@@ -7,6 +7,7 @@
 - 已建立项目协作规则：见 [AGENTS.md](AGENTS.md)
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [index.html](index.html)、[styles.css](styles.css) 和 [script.js](script.js)
+- 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
 - 当前阶段：静态 UI Demo，尚未接入真实数据和后端能力
 
 ## 设计方向
@@ -27,6 +28,7 @@
 4. 后续按设计需求文档分阶段实现并持续更新本文档。
 
 5. 使用原生 HTML、CSS 和 JavaScript 完成首版静态 UI Demo，覆盖首页、文章、专题、项目、记录、搜索、主题切换和移动端导航。
+6. 增加滚动进度、首屏视差、统计数字增长、滚动文字带和文章卡片悬停反馈，增强首页视觉节奏。
 
 Demo 直接打开 [index.html](index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/`。
 

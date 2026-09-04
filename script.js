@@ -5,6 +5,12 @@ const searchInput = document.querySelector("#search-input");
 const searchResults = document.querySelector("#search-results");
 const mobileNav = document.querySelector("#mobile-nav");
 const menuButton = document.querySelector("#menu-button");
+const scrollProgress = document.querySelector("#scroll-progress span");
+const statNumbers = [...document.querySelectorAll("[data-count]")];
+const heroVisual = document.querySelector(".hero-visual");
+const heroImage = document.querySelector(".hero-image-frame");
+const heroStamp = document.querySelector(".hero-stamp");
+const heroLabel = document.querySelector(".hero-visual-label");
 
 if (window.lucide) window.lucide.createIcons();
 
@@ -80,8 +86,47 @@ const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
       entry.target.classList.add("is-visible");
+      if (entry.target.classList.contains("signal-bar")) animateStats();
       observer.unobserve(entry.target);
     }
   });
 }, { threshold: 0.12 });
 document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let statsAnimated = false;
+function animateStats() {
+  if (statsAnimated) return;
+  statsAnimated = true;
+  statNumbers.forEach((number) => {
+    const target = Number(number.dataset.count);
+    if (prefersReducedMotion) {
+      number.textContent = String(target).padStart(2, "0");
+      return;
+    }
+    const start = performance.now();
+    const duration = 850;
+    const tick = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      number.textContent = String(Math.round(target * eased)).padStart(2, "0");
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+function updateScrollEffects() {
+  const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollRatio = pageHeight > 0 ? window.scrollY / pageHeight : 0;
+  scrollProgress.style.transform = `scaleX(${Math.min(scrollRatio, 1)})`;
+  if (prefersReducedMotion || !heroVisual) return;
+  const visualTop = heroVisual.getBoundingClientRect().top;
+  const visualOffset = Math.max(-55, Math.min(visualTop * -0.08, 55));
+  heroImage.style.setProperty("--parallax-image", `${visualOffset}px`);
+  heroStamp.style.setProperty("--parallax-stamp", `${visualOffset * -1.35}px`);
+  heroLabel.style.setProperty("--parallax-label", `${visualOffset * .55}px`);
+}
+window.addEventListener("scroll", updateScrollEffects, { passive: true });
+window.addEventListener("resize", updateScrollEffects);
+updateScrollEffects();

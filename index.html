@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"><span></span></div>
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="#top" aria-label="返回首页">
@@ -74,11 +75,13 @@
         </section>
 
         <section class="signal-bar section-pad reveal" aria-label="博客数据概览">
-          <div class="signal-item"><strong>24</strong><span>篇文章</span></div>
-          <div class="signal-item"><strong>06</strong><span>个专题</span></div>
-          <div class="signal-item"><strong>08</strong><span>个实验项目</span></div>
+          <div class="signal-item"><strong data-count="24">0</strong><span>篇文章</span></div>
+          <div class="signal-item"><strong data-count="06">0</strong><span>个专题</span></div>
+          <div class="signal-item"><strong data-count="08">0</strong><span>个实验项目</span></div>
           <div class="signal-item signal-status"><span class="status-dot"></span><span>目前正在构建博客 Demo</span></div>
         </section>
+
+        <div class="marquee-band" aria-hidden="true"><div class="marquee-track"><span>BUILD</span><b>✳</b><span>LEARN</span><b>✳</b><span>SHARE</span><b>✳</b><span>BUILD</span><b>✳</b><span>LEARN</span><b>✳</b><span>SHARE</span><b>✳</b><span>BUILD</span><b>✳</b><span>LEARN</span><b>✳</b><span>SHARE</span><b>✳</b></div></div>
 
         <section class="content-layout section-pad" id="articles">
           <div class="content-main">
