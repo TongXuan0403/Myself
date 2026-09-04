@@ -6,7 +6,7 @@
 
 - 已建立项目协作规则：见 [AGENTS.md](AGENTS.md)
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
-- 已完成静态 UI Demo：见 [index.html](index.html)、[styles.css](styles.css) 和 [script.js](script.js)
+- 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
 - 当前阶段：静态 UI Demo，尚未接入真实数据和后端能力
 
@@ -32,6 +32,6 @@
 6. 增加滚动进度、首屏视差、统计数字增长、滚动文字带和文章卡片悬停反馈，增强首页视觉节奏。
 7. 补充学习型内容主页参考，增加连续发布流、专题进度、突出搜索和长页面叙事的设计要求。
 
-Demo 直接打开 [index.html](index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/`。
+Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/demo/`。
 
 详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)。
