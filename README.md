@@ -6,7 +6,8 @@
 
 - 已建立项目协作规则：见 [AGENTS.md](AGENTS.md)
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
-- 当前阶段：设计需求整理，尚未开始应用代码实现
+- 已完成静态 UI Demo：见 [index.html](index.html)、[styles.css](styles.css) 和 [script.js](script.js)
+- 当前阶段：静态 UI Demo，尚未接入真实数据和后端能力
 
 ## 设计方向
 
@@ -24,5 +25,9 @@
 2. 完成视觉规范、响应式要求和内容数据模型设计。
 3. 完成自动发布、分享图片、RSS、SEO 和部署流程规划。
 4. 后续按设计需求文档分阶段实现并持续更新本文档。
+
+5. 使用原生 HTML、CSS 和 JavaScript 完成首版静态 UI Demo，覆盖首页、文章、专题、项目、记录、搜索、主题切换和移动端导航。
+
+Demo 直接打开 [index.html](index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/`。
 
 详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)。

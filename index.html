@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="一个记录代码、项目和持续构建中的想法的个人技术博客 Demo。" />
+    <title>TX / Field Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="返回首页">
+          <span class="brand-mark">TX</span>
+          <span class="brand-copy"><strong>Field Notes</strong><small>个人技术档案馆</small></span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="主导航">
+          <a class="nav-link is-active" href="#top">首页</a>
+          <a class="nav-link" href="#articles">文章</a>
+          <a class="nav-link" href="#collections">专题</a>
+          <a class="nav-link" href="#projects">项目</a>
+          <a class="nav-link" href="#journal">记录</a>
+        </nav>
+
+        <div class="header-actions">
+          <button class="icon-button" id="search-button" type="button" aria-label="打开搜索" title="搜索">
+            <i data-lucide="search"></i>
+          </button>
+          <button class="icon-button" id="theme-button" type="button" aria-label="切换主题" title="切换主题">
+            <i data-lucide="sun"></i>
+          </button>
+          <a class="github-button" href="https://github.com/TongXuan0403/Myself" target="_blank" rel="noreferrer">
+            GitHub <i data-lucide="arrow-up-right"></i>
+          </a>
+          <button class="menu-button" id="menu-button" type="button" aria-label="打开菜单" aria-expanded="false">
+            <i data-lucide="menu"></i>
+          </button>
+        </div>
+      </header>
+
+      <nav class="mobile-nav" id="mobile-nav" aria-label="移动端主导航">
+        <a href="#top">首页</a>
+        <a href="#articles">文章</a>
+        <a href="#collections">专题</a>
+        <a href="#projects">项目</a>
+        <a href="#journal">记录</a>
+      </nav>
+
+      <main id="top">
+        <section class="hero section-pad reveal">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span>Personal knowledge archive · 2026</p>
+            <h1>把想法写成<br /><em>可以复用的东西。</em></h1>
+            <p class="hero-intro">这里记录后端开发、前端实践、AI 工具实验，以及那些在项目里真正解决过的问题。</p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#articles">开始阅读 <i data-lucide="arrow-down-right"></i></a>
+              <a class="text-button" href="#about">关于我 <i data-lucide="arrow-up-right"></i></a>
+            </div>
+            <div class="hero-note"><span class="note-line"></span><span>Writing from Hangzhou · building in public</span></div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="hero-image-frame">
+              <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1400&q=85" alt="桌面上的笔记本和咖啡，象征持续记录与创作" />
+              <div class="image-caption"><span>01 / FEATURED NOTE</span><span>scroll to explore</span></div>
+            </div>
+            <div class="hero-stamp">MAKE<br />THINGS<br /><span>clear.</span></div>
+            <div class="hero-visual-label">BUILD / LEARN / SHARE</div>
+          </div>
+        </section>
+
+        <section class="signal-bar section-pad reveal" aria-label="博客数据概览">
+          <div class="signal-item"><strong>24</strong><span>篇文章</span></div>
+          <div class="signal-item"><strong>06</strong><span>个专题</span></div>
+          <div class="signal-item"><strong>08</strong><span>个实验项目</span></div>
+          <div class="signal-item signal-status"><span class="status-dot"></span><span>目前正在构建博客 Demo</span></div>
+        </section>
+
+        <section class="content-layout section-pad" id="articles">
+          <div class="content-main">
+            <div class="section-heading reveal">
+              <div><p class="eyebrow">Selected writing / 01</p><h2>最近写了什么</h2></div>
+              <button class="outline-button" id="show-all-button" type="button">查看全部 <i data-lucide="arrow-up-right"></i></button>
+            </div>
+
+            <div class="filter-row reveal" aria-label="文章分类筛选">
+              <button class="filter-button is-active" type="button" data-filter="all">全部 <span>06</span></button>
+              <button class="filter-button" type="button" data-filter="build">项目实战 <span>02</span></button>
+              <button class="filter-button" type="button" data-filter="frontend">前端开发 <span>02</span></button>
+              <button class="filter-button" type="button" data-filter="thinking">思考记录 <span>02</span></button>
+            </div>
+
+            <div class="article-grid" id="article-grid">
+              <article class="article-card article-card-featured reveal" data-category="build" data-search="个人博客 从零实现 自动发布 视觉设计">
+                <div class="article-cover cover-slate"><span class="cover-index">01</span><div class="cover-glyph">{ }</div><span class="cover-type">CASE STUDY</span></div>
+                <div class="article-meta"><span>项目实战</span><span>8 min read</span></div>
+                <h3>从零实现一个兼顾自动发布与视觉表达的个人博客</h3>
+                <p>从信息架构、内容模型到 GitHub Actions，记录博客真正落地的每一个决定。</p>
+                <a class="card-link" href="#projects">阅读项目记录 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+
+              <article class="article-card reveal" data-category="frontend" data-search="前端开发 页面设计 CSS 网格布局">
+                <div class="article-cover cover-coral"><span class="cover-index">02</span><div class="cover-glyph">◒</div><span class="cover-type">FRONTEND</span></div>
+                <div class="article-meta"><span>前端开发</span><span>6 min read</span></div>
+                <h3>用 CSS 网格做一个不无聊的文章列表</h3>
+                <p>关于信息密度、留白和视觉节奏的一次小实验。</p>
+                <a class="card-link" href="#articles">打开文章 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+
+              <article class="article-card reveal" data-category="thinking" data-search="思考记录 写作 技术分享 复盘">
+                <div class="article-cover cover-lime"><span class="cover-index">03</span><div class="cover-glyph">↗</div><span class="cover-type">FIELD NOTE</span></div>
+                <div class="article-meta"><span>思考记录</span><span>4 min read</span></div>
+                <h3>技术分享不只是把答案贴出来</h3>
+                <p>把背景、过程和失败也写进去，内容才真的有复用价值。</p>
+                <a class="card-link" href="#journal">查看记录 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+
+              <article class="article-card reveal" data-category="build" data-search="部署 Linux 云服务器 项目实战">
+                <div class="article-cover cover-ink"><span class="cover-index">04</span><div class="cover-glyph">./</div><span class="cover-type">BUILD LOG</span></div>
+                <div class="article-meta"><span>项目实战</span><span>7 min read</span></div>
+                <h3>一台云服务器的第一次部署清单</h3>
+                <p>从域名、HTTPS 到自动部署，整理一份自己的上线检查表。</p>
+                <a class="card-link" href="#projects">阅读项目记录 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+
+              <article class="article-card reveal" data-category="frontend" data-search="Vue TypeScript 前端开发 组件">
+                <div class="article-cover cover-blue"><span class="cover-index">05</span><div class="cover-glyph">TS</div><span class="cover-type">FRONTEND</span></div>
+                <div class="article-meta"><span>前端开发</span><span>9 min read</span></div>
+                <h3>从页面组件里提炼一套小型设计系统</h3>
+                <p>颜色、间距、状态和交互，先把可重复的东西整理出来。</p>
+                <a class="card-link" href="#articles">打开文章 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+
+              <article class="article-card reveal" data-category="thinking" data-search="学习记录 思考 技术成长 写作">
+                <div class="article-cover cover-paper"><span class="cover-index">06</span><div class="cover-glyph">—</div><span class="cover-type">REFLECTION</span></div>
+                <div class="article-meta"><span>思考记录</span><span>5 min read</span></div>
+                <h3>给正在变多的收藏夹做一次减法</h3>
+                <p>留下真正会实践的内容，知识库才不会变成电子杂物间。</p>
+                <a class="card-link" href="#journal">查看记录 <i data-lucide="arrow-up-right"></i></a>
+              </article>
+            </div>
+          </div>
+
+          <aside class="side-rail reveal">
+            <div class="rail-block" id="collections">
+              <p class="eyebrow">Curated paths / 02</p>
+              <h3>专题路线</h3>
+              <a class="collection-item" href="#articles"><span class="collection-number">01</span><span><strong>个人博客从零实现</strong><small>6 篇文章 · 进行中</small></span><i data-lucide="arrow-up-right"></i></a>
+              <a class="collection-item" href="#articles"><span class="collection-number">02</span><span><strong>前端工程化实践</strong><small>8 篇文章 · 进行中</small></span><i data-lucide="arrow-up-right"></i></a>
+              <a class="collection-item" href="#articles"><span class="collection-number">03</span><span><strong>AI 工具实验室</strong><small>4 篇文章 · 计划中</small></span><i data-lucide="arrow-up-right"></i></a>
+            </div>
+            <div class="rail-block rail-tags">
+              <div class="rail-heading"><p class="eyebrow">Topics / 03</p><span>按主题探索</span></div>
+              <div class="tag-cloud"><a href="#articles">TypeScript</a><a href="#articles">React</a><a href="#articles">部署</a><a href="#articles">AI</a><a href="#articles">设计系统</a><a href="#articles">效率工具</a><a href="#articles">复盘</a></div>
+            </div>
+            <div class="rail-quote"><span class="quote-mark">“</span><p>写下来不是为了证明我知道，而是为了下次少走一点弯路。</p><span class="quote-author">— TX, field note 024</span></div>
+          </aside>
+        </section>
+
+        <section class="project-section section-pad" id="projects">
+          <div class="section-heading reveal"><div><p class="eyebrow">Project lab / 04</p><h2>正在构建的东西</h2></div><span class="heading-note">Selected experiments</span></div>
+          <div class="project-grid">
+            <article class="project-card project-primary reveal">
+              <div class="project-image"><img src="https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1400&q=85" alt="网页界面设计稿和色板" /><span class="project-status"><span class="status-dot"></span>in progress</span><span class="project-count">01 / 02</span></div>
+              <div class="project-info"><div><p class="eyebrow">Personal blog · 2026</p><h3>Myself / Field Notes</h3></div><a class="round-link" href="#top" aria-label="查看项目"><i data-lucide="arrow-up-right"></i></a></div>
+              <p class="project-description">一个兼顾自动发布、技术分享和视觉表达的个人博客系统。当前正在完成第一版界面。</p>
+              <div class="stack-list"><span>TypeScript</span><span>Markdown</span><span>Automation</span></div>
+            </article>
+            <article class="project-card reveal">
+              <div class="project-image"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1100&q=85" alt="数据分析仪表盘界面" /><span class="project-status project-status-quiet">research</span><span class="project-count">02 / 02</span></div>
+              <div class="project-info"><div><p class="eyebrow">Tool experiment · 2026</p><h3>Focus / Weekly Review</h3></div><a class="round-link" href="#journal" aria-label="查看项目"><i data-lucide="arrow-up-right"></i></a></div>
+              <p class="project-description">把每周的目标、输出和复盘整理到一个更轻量的工具里。</p>
+              <div class="stack-list"><span>React</span><span>Local-first</span><span>Productivity</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="journal-section section-pad" id="journal">
+          <div class="journal-intro reveal"><p class="eyebrow">Live journal / 05</p><h2>最近的<br /><em>一些记录</em></h2><p>不完整的想法、项目进展和随手记，也值得被保留下来。</p><a class="text-button" href="#journal">进入时间线 <i data-lucide="arrow-right"></i></a></div>
+          <div class="timeline reveal">
+            <article class="timeline-item"><time>09.04.2026</time><div><span class="timeline-type">PROJECT</span><h3>开始设计个人博客 Demo</h3><p>把“自动分享”和“页面美化”放在同一个产品目标里。</p></div></article>
+            <article class="timeline-item"><time>09.01.2026</time><div><span class="timeline-type">LEARNING</span><h3>重新整理 Markdown 内容模型</h3><p>文章、专题、项目和记录应该共享一套清晰的元数据。</p></div></article>
+            <article class="timeline-item"><time>08.26.2026</time><div><span class="timeline-type">THOUGHT</span><h3>好看的页面也要能被快速读懂</h3><p>视觉重点可以吸引注意，但内容层次决定用户会不会留下。</p></div></article>
+          </div>
+        </section>
+
+        <section class="about-strip section-pad" id="about">
+          <div class="about-copy reveal"><p class="eyebrow">A little about me / 06</p><h2>你好，我是 <span>TX</span>。</h2><p>一个喜欢把模糊问题拆开、把做过的事情记录下来的人。这里不是结论陈列室，更像一张持续更新的工作台。</p><a class="primary-button" href="mailto:hello@example.com">联系我 <i data-lucide="arrow-up-right"></i></a></div>
+          <div class="about-details reveal"><div><span>Focus</span><strong>Web · Backend · AI</strong></div><div><span>Based in</span><strong>China / Remote</strong></div><div><span>Now</span><strong>Building this archive</strong></div></div>
+        </section>
+      </main>
+
+      <footer class="site-footer section-pad"><div class="footer-brand"><span class="brand-mark">TX</span><span>Field Notes</span></div><p>© 2026 TX. Made with curiosity and a lot of notes.</p><div class="footer-links"><a href="#top">返回顶部 <i data-lucide="arrow-up"></i></a><a href="https://github.com/TongXuan0403/Myself" target="_blank" rel="noreferrer">GitHub <i data-lucide="arrow-up-right"></i></a></div></footer>
+    </div>
+
+    <div class="search-overlay" id="search-overlay" aria-hidden="true">
+      <div class="search-dialog" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <div class="search-dialog-head"><p class="eyebrow" id="search-title">Search the archive</p><button class="icon-button" id="close-search" type="button" aria-label="关闭搜索"><i data-lucide="x"></i></button></div>
+        <label class="search-input-wrap"><i data-lucide="search"></i><input id="search-input" type="search" placeholder="搜索文章、项目或主题..." autocomplete="off" /></label>
+        <div class="search-results" id="search-results"><p class="search-hint">输入关键词开始搜索</p></div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
