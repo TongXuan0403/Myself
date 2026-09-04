@@ -8,7 +8,7 @@
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
-- 当前阶段：静态 UI Demo，尚未接入真实数据和后端能力
+- 当前阶段：第一代产品规划与实现准备，公开站点 Demo 已完成，独立发布后台尚未接入
 
 ## 设计方向
 
@@ -31,7 +31,9 @@
 5. 使用原生 HTML、CSS 和 JavaScript 完成首版静态 UI Demo，覆盖首页、文章、专题、项目、记录、搜索、主题切换和移动端导航。
 6. 增加滚动进度、首屏视差、统计数字增长、滚动文字带和文章卡片悬停反馈，增强首页视觉节奏。
 7. 补充学习型内容主页参考，增加连续发布流、专题进度、突出搜索和长页面叙事的设计要求。
+8. 确定第一代采用“公开博客站点 + 独立文章发布后台”的双应用结构。
+9. 建立后续版本路线图，留存评论、订阅、数据分析、多作者、在线代码和 AI 辅助等延期能力。
 
 Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/demo/`。
 
-详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)。
+详细方案请阅读 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)，后续技术路线请阅读 [PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)。
