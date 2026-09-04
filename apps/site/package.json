@@ -1,0 +1,17 @@
+{
+  "name": "myself-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "astro": "7.3.1",
+    "typescript": "6.0.3"
+  }
+}

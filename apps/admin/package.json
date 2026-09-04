@@ -1,0 +1,24 @@
+{
+  "name": "myself-admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.10",
+    "@vitejs/plugin-react": "latest",
+    "astro": "7.3.1",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "6.0.3",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7"
+  }
+}
