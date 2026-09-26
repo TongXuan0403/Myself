@@ -8,7 +8,7 @@
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
-- 当前阶段：文章、专题、项目和记录已接入 FastAPI + SQLite；已发布文章同步为 Astro Markdown，四类公开数据从同一快照构建
+- 当前阶段：文章、专题、项目和记录已接入 FastAPI + SQLite；后台四类内容均可新建、编辑和删除，公开数据从同一快照构建
 - 公开站点已部署至 `http://47.109.193.62/`，当前提供 HTTP 访问；HTTPS 需绑定域名并配置 TLS
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
@@ -48,6 +48,7 @@
 20. 扩展 FastAPI 内容模型和 SQLite 持久化：新增专题、项目、记录三类表、种子数据及列表、详情、新建、更新、删除接口；后台登录后优先读取这些 API 数据，并在接口不可用时回退 Mock 数据。
 21. 将发布内容同步到 `apps/site/src/content/published/`：文章生成带 Front Matter 的 Markdown，专题、项目和记录写入版本化 JSON 快照；Astro 内容集合渲染文章正文，首页、列表、搜索及详情共享公开数据。草稿、撤回和删除不进入下次构建；发布仍需手动构建部署，Git 自动发布尚未实现。详见 [内容发布说明](docs/CONTENT_PUBLISHING.md)。
 22. 将 Astro 静态站点部署到 Ubuntu + Nginx 服务器 `47.109.193.62`，使用带时间戳的 release 目录和 `current` 软链接切换，保留 Nginx 默认站点配置备份；API 与后台没有部署到公网。详见 [服务器部署说明](docs/DEPLOYMENT.md)。
+23. 补齐专题、项目和记录的后台编辑器：支持字段校验、新建、修改和二次确认删除，在线时调用 FastAPI CRUD 并刷新公开快照，离线时保留会话内 Mock 操作；同时修复后台入口遗漏样式文件导致的无样式渲染。
 
 ## 求职材料
 
@@ -97,4 +98,4 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-后台可在 Mock 环境跑通登录、编辑、预览、保存和发布；API 可用时写入 SQLite 并同步本地公开内容。API 不可用时后台回退 Mock，此时不会产生可构建的发布内容。发布成功表示 Markdown 和快照已同步，不表示网站已上线；仍需重新构建和部署。API 尚无身份认证，不能直接暴露到公网。操作及故障恢复见 [内容发布说明](docs/CONTENT_PUBLISHING.md)，服务器环境与回滚见 [服务器部署说明](docs/DEPLOYMENT.md)，进度与下一步见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。
+后台可在 Mock 环境跑通登录以及文章、专题、项目、记录的编辑流程；API 可用时四类内容的新建、修改和删除均写入 SQLite，并同步本地公开内容。API 不可用时后台回退 Mock，此时不会产生可构建的发布内容。发布成功表示 Markdown 和快照已同步，不表示网站已上线；仍需重新构建和部署。API 尚无身份认证，不能直接暴露到公网。操作及故障恢复见 [内容发布说明](docs/CONTENT_PUBLISHING.md)，服务器环境与回滚见 [服务器部署说明](docs/DEPLOYMENT.md)，进度与下一步见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。

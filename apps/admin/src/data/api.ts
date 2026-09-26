@@ -121,6 +121,39 @@ function toPayload(article: Article, includeStatus = true) {
   };
 }
 
+function toCollectionPayload(item: Collection) {
+  return {
+    title: item.title,
+    slug: item.slug,
+    description: item.description,
+    audience: item.audience,
+    stages: item.stages,
+    done: item.done,
+  };
+}
+
+function toProjectPayload(item: Project) {
+  return {
+    name: item.name,
+    slug: item.slug,
+    summary: item.summary,
+    status: item.status === "已上线" ? "online" : item.status === "开发中" ? "building" : "idea",
+    stack: item.stack,
+    result: item.result,
+    link: item.link,
+  };
+}
+
+function toNotePayload(item: Note) {
+  return {
+    date: item.date,
+    type: item.type,
+    title: item.title,
+    summary: item.summary,
+    tags: item.tags,
+  };
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -172,4 +205,46 @@ export async function publishRemoteArticle(article: Article): Promise<Article> {
 
 export async function deleteRemoteArticle(article: Article): Promise<void> {
   await request<void>(`/api/articles/${article.id}`, { method: "DELETE" });
+}
+
+export async function createRemoteCollection(item: Collection): Promise<Collection> {
+  const created = await request<ApiCollection>("/api/collections", { method: "POST", body: JSON.stringify(toCollectionPayload(item)) });
+  return toCollection(created, 0);
+}
+
+export async function updateRemoteCollection(item: Collection): Promise<Collection> {
+  const updated = await request<ApiCollection>(`/api/collections/${item.id}`, { method: "PUT", body: JSON.stringify(toCollectionPayload(item)) });
+  return { ...toCollection(updated, 0), color: item.color };
+}
+
+export async function deleteRemoteCollection(item: Collection): Promise<void> {
+  await request<void>(`/api/collections/${item.id}`, { method: "DELETE" });
+}
+
+export async function createRemoteProject(item: Project): Promise<Project> {
+  const created = await request<ApiProject>("/api/projects", { method: "POST", body: JSON.stringify(toProjectPayload(item)) });
+  return toProject(created);
+}
+
+export async function updateRemoteProject(item: Project): Promise<Project> {
+  const updated = await request<ApiProject>(`/api/projects/${item.id}`, { method: "PUT", body: JSON.stringify(toProjectPayload(item)) });
+  return toProject(updated);
+}
+
+export async function deleteRemoteProject(item: Project): Promise<void> {
+  await request<void>(`/api/projects/${item.id}`, { method: "DELETE" });
+}
+
+export async function createRemoteNote(item: Note): Promise<Note> {
+  const created = await request<ApiNote>("/api/notes", { method: "POST", body: JSON.stringify(toNotePayload(item)) });
+  return toNote(created);
+}
+
+export async function updateRemoteNote(item: Note): Promise<Note> {
+  const updated = await request<ApiNote>(`/api/notes/${item.id}`, { method: "PUT", body: JSON.stringify(toNotePayload(item)) });
+  return toNote(updated);
+}
+
+export async function deleteRemoteNote(item: Note): Promise<void> {
+  await request<void>(`/api/notes/${item.id}`, { method: "DELETE" });
 }

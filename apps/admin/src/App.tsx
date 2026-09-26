@@ -9,7 +9,23 @@ import {
 import type { Article, ArticlePatch, ArticleStatus } from "./types/article";
 import { createDraftArticle } from "./types/article";
 import { initialArticles } from "./data/articles";
-import { createRemoteArticle, deleteRemoteArticle, fetchArticles, fetchWorkspaceContent, updateRemoteArticle } from "./data/api";
+import {
+  createRemoteArticle,
+  createRemoteCollection,
+  createRemoteNote,
+  createRemoteProject,
+  deleteRemoteArticle,
+  deleteRemoteCollection,
+  deleteRemoteNote,
+  deleteRemoteProject,
+  fetchArticles,
+  fetchWorkspaceContent,
+  updateRemoteArticle,
+  updateRemoteCollection,
+  updateRemoteNote,
+  updateRemoteProject,
+} from "./data/api";
+import { CollectionForm, NoteForm, ProjectForm } from "./components/ContentForms";
 import type { Collection, Note, Project } from "./types/content";
 
 type Route = "dashboard" | "articles" | "collections" | "projects" | "notes" | "settings";
@@ -59,8 +75,8 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   return <div className="login-screen"><div className="login-aside"><div className="admin-brand large"><span>TX</span><div><strong>MYSELF</strong><small>CONTENT STUDIO</small></div></div><div className="login-quote"><p>记录代码、项目和持续构建中的想法。</p><span>一个给自己的内容工作台。</span></div><div className="login-aside-foot"><span>PRIVATE WORKSPACE</span><span>V 1.0 / 2026</span></div></div><main className="login-card"><div className="login-card-head"><p className="overline">WELCOME BACK</p><h1>登录工作台</h1><p>继续编辑你的下一篇文章。</p></div><form onSubmit={submit} className="login-form" noValidate><label>邮箱<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" /></label><label>密码<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" /></label>{error && <div className="form-error"><CircleAlert size={15} />{error}</div>}<button className="primary wide" disabled={loading}>{loading ? <><Activity size={15} className="spin" />正在验证...</> : <>进入工作台 <ArrowUpRight size={15} /></>}</button></form><div className="demo-hint"><span>演示账号</span><code>tongxuan@example.com</code><code>123456</code></div></main></div>;
 }
 
-function Sidebar({ route, open, articleCount, onClose, onLogout }: { route: Route; open: boolean; articleCount: number; onClose: () => void; onLogout: () => void }) {
-  return <><aside className={`sidebar ${open ? "is-open" : ""}`}><div className="admin-brand"><span>TX</span><div><strong>MYSELF</strong><small>CONTENT STUDIO</small></div></div><div className="workspace-label">WORKSPACE</div><nav>{navItems.map(({ id, label, icon: Icon, count }) => <button key={id} className={route === id ? "active" : ""} onClick={() => { navigate(id); onClose(); }}><Icon size={16} /><span>{label}</span>{id === "articles" ? <b>{articleCount}</b> : count && <b>{count}</b>}</button>)}<button className="sidebar-action" onClick={() => { navigate("articles"); onClose(); }}><Plus size={16} />新建文章</button></nav><div className="sidebar-bottom"><button className={route === "settings" ? "active" : ""} onClick={() => { navigate("settings"); onClose(); }}><Settings size={16} />设置</button><div className="profile"><span>TX</span><div><strong>Tong Xuan</strong><small>作者 · 已登录</small></div><button aria-label="退出登录" onClick={onLogout}><LogOut size={14} /></button></div></div></aside>{open && <button className="backdrop" aria-label="关闭菜单" onClick={onClose} />}</>;
+function Sidebar({ route, open, counts, onClose, onLogout }: { route: Route; open: boolean; counts: Partial<Record<Route, number>>; onClose: () => void; onLogout: () => void }) {
+  return <><aside className={`sidebar ${open ? "is-open" : ""}`}><div className="admin-brand"><span>TX</span><div><strong>MYSELF</strong><small>CONTENT STUDIO</small></div></div><div className="workspace-label">WORKSPACE</div><nav>{navItems.map(({ id, label, icon: Icon }) => <button key={id} className={route === id ? "active" : ""} onClick={() => { navigate(id); onClose(); }}><Icon size={16} /><span>{label}</span>{counts[id] !== undefined ? <b>{counts[id]}</b> : null}</button>)}<button className="sidebar-action" onClick={() => { navigate("articles"); onClose(); }}><Plus size={16} />新建文章</button></nav><div className="sidebar-bottom"><button className={route === "settings" ? "active" : ""} onClick={() => { navigate("settings"); onClose(); }}><Settings size={16} />设置</button><div className="profile"><span>TX</span><div><strong>Tong Xuan</strong><small>作者 · 已登录</small></div><button aria-label="退出登录" onClick={onLogout}><LogOut size={14} /></button></div></div></aside>{open && <button className="backdrop" aria-label="关闭菜单" onClick={onClose} />}</>;
 }
 function Topbar({ route, apiConnected, onOpenMenu, onToast }: { route: Route; apiConnected: boolean; onOpenMenu: () => void; onToast: (message: string) => void }) {
   const title = route === "dashboard" ? "早上好，Tong Xuan。" : navItems.find((item) => item.id === route)?.label ?? "设置";
@@ -85,11 +101,47 @@ function ArticlesPage({ articles, selectedId, onSelect, onCreate, onUpdate, onSa
   return <div className="page articles-page"><div className="workspace"><div className="article-list"><SectionHeading overline="YOUR ARCHIVE / 01" title="文章" action={<button className="primary" onClick={onCreate}><Plus size={15} />新建文章</button>} /><div className="list-tools"><label><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索文章..." /></label><select value={filter} onChange={(event) => setFilter(event.target.value as "全部" | ArticleStatus)} aria-label="文章状态筛选"><option>全部</option><option>已发布</option><option>草稿</option></select><button className={`filter ${errorMode ? "is-error" : ""}`} onClick={() => setErrorMode((value) => !value)}><span />{errorMode ? "恢复接口" : "模拟错误"}</button></div>{errorMode ? <div className="empty-state error-state"><CircleAlert size={22} /><strong>暂时无法加载文章</strong><p>Mock API 返回 503，请稍后重试。</p><button className="secondary" onClick={() => setErrorMode(false)}>重试</button></div> : <><div className="article-items">{filtered.map((article) => <button className={article.id === selectedId ? "article-item selected" : "article-item"} key={article.id} onClick={() => onSelect(article.id)}><span className="item-type">{article.category}</span><strong>{article.title}</strong><small>{article.updated}</small><span className={`status ${article.status === "已发布" ? "published" : "draft"}`}>{article.status}</span></button>)}{filtered.length === 0 && <div className="empty-state"><Search size={22} /><strong>暂无匹配文章</strong><p>清空搜索词或筛选条件后再看看。</p><button className="text-button" onClick={() => { setQuery(""); setFilter("全部"); }}>清除筛选</button></div>}</div><p className="list-hint">共 {articles.length} 篇文章 · 已显示 {filtered.length} 篇</p></>}</div>{selected ? <ArticleEditor article={selected} onClose={() => onSelect(null)} onUpdate={onUpdate} onSave={onSave} onPublish={onPublish} onDelete={onDelete} /> : <div className="editor-panel"><div className="editor-empty"><Pencil size={22} /><strong>选择一篇文章开始编辑</strong><p>支持 Markdown 编辑、预览、保存草稿和发布。</p></div></div>}</div></div>;
 }
 
-function CollectionsPage({ items }: { items: Collection[] }) { const [activeId, setActiveId] = useState<number | null>(null); const active = items.find((item) => item.id === activeId); return <div className="page"><SectionHeading overline="LEARNING PATHS / 02" title="专题" action={<button className="primary" onClick={() => setActiveId(null)}><Plus size={15} />新建专题</button>} /><div className="collection-layout"><div className="collection-list">{items.map((item) => <button className={`collection-row ${item.id === activeId ? "selected" : ""}`} key={item.id} onClick={() => setActiveId(item.id)}><span className={`collection-mark ${item.color}`} /><div><strong>{item.title}</strong><p>{item.description}</p><small>{item.done}/{item.count} 篇完成 · {item.updated}</small></div><div className="progress"><span style={{ width: `${(item.done / item.count) * 100}%` }} /></div><ChevronRight size={16} /></button>)}</div><div className="detail-panel">{active ? <><button className="back-button" onClick={() => setActiveId(null)}><ArrowLeft size={14} />全部专题</button><p className="overline">SERIES DETAIL</p><h3>{active.title}</h3><p className="detail-copy">{active.description}</p><div className="detail-stats"><span><strong>{active.count}</strong>篇文章</span><span><strong>{active.done}</strong>篇完成</span><span><strong>{Math.round(active.done / active.count * 100)}%</strong>进度</span></div><div className="series-steps">{active.stages.map((stage, index) => <div className={index < active.done ? "series-step done" : "series-step"} key={stage}><span>{index < active.done ? <Check size={12} /> : index + 1}</span><div><strong>{stage}</strong><small>{index < active.done ? "已完成" : "待开始"}</small></div></div>)}</div></> : <div className="detail-empty"><BookOpen size={26} /><strong>选择一个专题</strong><p>查看学习路径、完成进度和文章顺序。</p></div>}</div></div></div>; }
+type ContentEditorState = { mode: "create" | "edit"; id: number | null } | null;
 
-function ProjectsPage({ items }: { items: Project[] }) { const [activeId, setActiveId] = useState<number | null>(null); const active = items.find((item) => item.id === activeId); return <div className="page"><SectionHeading overline="PROJECT LAB / 03" title="项目" action={<button className="primary" onClick={() => setActiveId(null)}><Plus size={15} />新建项目</button>} /><div className="project-table"><div className="table-head"><span>项目名称</span><span>状态</span><span>技术栈</span><span>最近更新</span><span /></div>{items.map((project) => <button className="project-row" key={project.id} onClick={() => setActiveId(project.id)}><div><strong>{project.name}</strong><small>{project.summary}</small></div><span className={`project-status ${project.status === "已上线" ? "online" : project.status === "开发中" ? "building" : "idea"}`}>{project.status}</span><div className="stack-list">{project.stack.map((item) => <span key={item}>{item}</span>)}</div><small>{project.updated}</small><ChevronRight size={16} /></button>)}</div>{active && <div className="drawer"><button className="drawer-close" aria-label="关闭项目详情" onClick={() => setActiveId(null)}><X size={17} /></button><p className="overline">PROJECT DETAIL</p><h3>{active.name}</h3><p>{active.summary}</p><div className="drawer-meta"><span>状态<strong>{active.status}</strong></span><span>仓库<strong>{active.link}</strong></span></div><h4>技术栈</h4><div className="stack-list large">{active.stack.map((item) => <span key={item}>{item}</span>)}</div><button className="primary"><ArrowUpRight size={15} />打开项目仓库</button></div>}</div>; }
+function CollectionsPage({ items, onSave, onDelete }: {
+  items: Collection[];
+  onSave: (item: Collection, mode: "create" | "edit") => Promise<Collection | null>;
+  onDelete: (item: Collection) => Promise<boolean>;
+}) {
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [editor, setEditor] = useState<ContentEditorState>(null);
+  const active = items.find((item) => item.id === activeId) ?? null;
+  const editingItem = items.find((item) => item.id === editor?.id) ?? null;
+  const closeEditor = () => setEditor(null);
 
-function NotesPage({ items }: { items: Note[] }) { const [type, setType] = useState("全部"); const visible = items.filter((note) => type === "全部" || note.type === type); return <div className="page"><SectionHeading overline="FIELD NOTES / 04" title="记录" action={<button className="primary"><Plus size={15} />新建记录</button>} /><div className="notes-toolbar"><div className="segmented">{["全部", "学习笔记", "项目进展", "问题解决", "工具尝试"].map((item) => <button className={type === item ? "active" : ""} key={item} onClick={() => setType(item)}>{item}</button>)}</div><span>{visible.length} 条记录</span></div><div className="timeline">{visible.map((note) => <article className="timeline-item" key={note.id}><time>{note.date}</time><span className="timeline-dot" /><div><span className="note-type">{note.type}</span><h3>{note.title}</h3><p>{note.summary}</p><div className="tag-list">{note.tags.map((tag) => <span key={tag}><Tags size={11} />{tag}</span>)}</div></div></article>)}</div></div>; }
+  return <div className="page"><SectionHeading overline="LEARNING PATHS / 02" title="专题" action={<button className="primary" onClick={() => setEditor({ mode: "create", id: null })}><Plus size={15} />新建专题</button>} /><div className="collection-layout"><div className="collection-list">{items.map((item) => <button className={`collection-row ${item.id === activeId ? "selected" : ""}`} key={item.id} onClick={() => { setActiveId(item.id); setEditor(null); }}><span className={`collection-mark ${item.color}`} /><div><strong>{item.title}</strong><p>{item.description}</p><small>{item.done}/{item.count} 篇完成 · {item.updated}</small></div><div className="progress"><span style={{ width: `${item.count ? (item.done / item.count) * 100 : 0}%` }} /></div><ChevronRight size={16} /></button>)}</div><div className="detail-panel">{editor ? <CollectionForm key={`collection-${editor.mode}-${editor.id ?? "new"}`} item={editingItem} mode={editor.mode} onCancel={closeEditor} onSave={onSave} onDelete={editingItem ? () => onDelete(editingItem) : undefined} /> : active ? <><button className="back-button" onClick={() => setActiveId(null)}><ArrowLeft size={14} />全部专题</button><div className="detail-heading"><div><p className="overline">SERIES DETAIL</p><h3>{active.title}</h3></div><button className="secondary" onClick={() => setEditor({ mode: "edit", id: active.id })}><Pencil size={14} />编辑专题</button></div><p className="detail-copy">{active.description}</p><p className="detail-audience">{active.audience}</p><div className="detail-stats"><span><strong>{active.count}</strong>个阶段</span><span><strong>{active.done}</strong>个完成</span><span><strong>{active.count ? Math.round(active.done / active.count * 100) : 0}%</strong>进度</span></div><div className="series-steps">{active.stages.map((stage, index) => <div className={index < active.done ? "series-step done" : "series-step"} key={`${stage}-${index}`}><span>{index < active.done ? <Check size={12} /> : index + 1}</span><div><strong>{stage}</strong><small>{index < active.done ? "已完成" : "待开始"}</small></div></div>)}</div></> : <div className="detail-empty"><BookOpen size={26} /><strong>选择一个专题</strong><p>查看学习路径、完成进度和文章顺序。</p></div>}</div></div></div>;
+}
+
+function ProjectsPage({ items, onSave, onDelete }: {
+  items: Project[];
+  onSave: (item: Project, mode: "create" | "edit") => Promise<Project | null>;
+  onDelete: (item: Project) => Promise<boolean>;
+}) {
+  const [editor, setEditor] = useState<ContentEditorState>(null);
+  const editingItem = items.find((item) => item.id === editor?.id) ?? null;
+  const closeEditor = () => setEditor(null);
+
+  return <div className="page"><SectionHeading overline="PROJECT LAB / 03" title="项目" action={<button className="primary" onClick={() => setEditor({ mode: "create", id: null })}><Plus size={15} />新建项目</button>} /><div className="project-table"><div className="table-head"><span>项目名称</span><span>状态</span><span>技术栈</span><span>最近更新</span><span /></div>{items.map((project) => <button className="project-row" key={project.id} onClick={() => setEditor({ mode: "edit", id: project.id })}><div><strong>{project.name}</strong><small>{project.summary}</small></div><span className={`project-status ${project.status === "已上线" ? "online" : project.status === "开发中" ? "building" : "idea"}`}>{project.status}</span><div className="stack-list">{project.stack.map((item) => <span key={item}>{item}</span>)}</div><small>{project.updated}</small><ChevronRight size={16} /></button>)}</div>{editor ? <><button className="backdrop" aria-label="关闭项目编辑器" onClick={closeEditor} /><ProjectForm key={`project-${editor.mode}-${editor.id ?? "new"}`} item={editingItem} mode={editor.mode} onCancel={closeEditor} onSave={onSave} onDelete={editingItem ? () => onDelete(editingItem) : undefined} /></> : null}</div>;
+}
+
+function NotesPage({ items, onSave, onDelete }: {
+  items: Note[];
+  onSave: (item: Note, mode: "create" | "edit") => Promise<Note | null>;
+  onDelete: (item: Note) => Promise<boolean>;
+}) {
+  const [type, setType] = useState("全部");
+  const [editor, setEditor] = useState<ContentEditorState>(null);
+  const visible = items.filter((note) => type === "全部" || note.type === type);
+  const editingItem = items.find((item) => item.id === editor?.id) ?? null;
+  const closeEditor = () => setEditor(null);
+
+  return <div className="page"><SectionHeading overline="FIELD NOTES / 04" title="记录" action={<button className="primary" onClick={() => setEditor({ mode: "create", id: null })}><Plus size={15} />新建记录</button>} /><div className="notes-toolbar"><div className="segmented">{["全部", "学习笔记", "项目进展", "问题解决", "工具尝试"].map((item) => <button className={type === item ? "active" : ""} key={item} onClick={() => setType(item)}>{item}</button>)}</div><span>{visible.length} 条记录</span></div><div className="timeline">{visible.map((note) => <article className="timeline-item" key={note.id}><time>{note.date}</time><span className="timeline-dot" /><div><span className="note-type">{note.type}</span><div className="note-heading"><h3>{note.title}</h3><button className="text-button" onClick={() => setEditor({ mode: "edit", id: note.id })}><Pencil size={13} />编辑</button></div><p>{note.summary}</p><div className="tag-list">{note.tags.map((tag) => <span key={tag}><Tags size={11} />{tag}</span>)}</div></div></article>)}</div>{editor ? <><button className="backdrop" aria-label="关闭记录编辑器" onClick={closeEditor} /><NoteForm key={`note-${editor.mode}-${editor.id ?? "new"}`} item={editingItem} mode={editor.mode} onCancel={closeEditor} onSave={onSave} onDelete={editingItem ? () => onDelete(editingItem) : undefined} /></> : null}</div>;
+}
 
 function SettingsPage({ dark, onToggleDark, onToast }: { dark: boolean; onToggleDark: () => void; onToast: (message: string) => void }) { const [saved, setSaved] = useState(false); return <div className="page settings-page"><SectionHeading overline="WORKSPACE SETTINGS / 05" title="设置" /><div className="settings-layout"><div className="settings-nav"><button className="active">工作台</button><button>发布流程</button><button>个人资料</button><button>危险操作</button></div><div className="settings-content"><section className="settings-section"><div><h3>工作台偏好</h3><p>调整内容编辑和界面的默认行为。</p></div><div className="setting-row"><div><strong>深色界面</strong><small>适合夜间集中编辑，公开站点主题不受影响。</small></div><button className={`toggle ${dark ? "on" : ""}`} role="switch" aria-checked={dark} onClick={onToggleDark}><span /></button></div><div className="setting-row"><div><strong>自动保存草稿</strong><small>每次输入后在本地 Mock 存储中保留最新内容。</small></div><button className="toggle on" role="switch" aria-checked="true"><span /></button></div></section><section className="settings-section"><div><h3>发布流程</h3><p>Mock 环境会模拟校验、构建和同步状态。</p></div><div className="setting-row"><div><strong>发布前内容校验</strong><small>标题、正文为空时阻止发布。</small></div><span className="setting-value"><Check size={14} />已开启</span></div><div className="setting-row"><div><strong>发布通知</strong><small>发布完成后显示右下角反馈。</small></div><button className="text-button" onClick={() => onToast("通知偏好已更新")}>测试通知 <ArrowUpRight size={13} /></button></div></section><button className="primary" onClick={() => { setSaved(true); window.setTimeout(() => setSaved(false), 2000); }}>{saved ? <><Check size={15} />已保存</> : "保存设置"}</button></div></div></div>; }
 
@@ -161,10 +213,79 @@ function App() {
     if (apiConnected) { try { await deleteRemoteArticle(selected); } catch { flash("API 删除失败，请检查接口后重试", "error"); return; } }
     setArticles((items) => items.filter((item) => item.id !== selected.id)); setSelectedId(null); flash(apiConnected ? "文章及公开内容已删除" : "Mock 文章已删除");
   };
+  const saveCollection = async (item: Collection, mode: "create" | "edit"): Promise<Collection | null> => {
+    if (apiConnected) {
+      try {
+        const remote = mode === "create" ? await createRemoteCollection(item) : await updateRemoteCollection(item);
+        setWorkspaceCollections((items) => mode === "create" ? [...items, remote] : items.map((current) => current.id === remote.id ? remote : current));
+        flash(mode === "create" ? "专题已创建并同步到 API" : "专题修改已同步到 API");
+        return remote;
+      } catch { flash("专题保存失败，请检查接口或 slug 是否重复", "error"); return null; }
+    }
+    const local = mode === "create" ? { ...item, id: Date.now(), updated: "刚刚" } : { ...item, updated: "刚刚" };
+    setWorkspaceCollections((items) => mode === "create" ? [...items, local] : items.map((current) => current.id === local.id ? local : current));
+    flash(mode === "create" ? "Mock 专题已创建" : "Mock 专题已更新");
+    return local;
+  };
+  const removeCollection = async (item: Collection): Promise<boolean> => {
+    if (apiConnected) {
+      try { await deleteRemoteCollection(item); }
+      catch { flash("专题删除失败，请检查接口后重试", "error"); return false; }
+    }
+    setWorkspaceCollections((items) => items.filter((current) => current.id !== item.id));
+    flash(apiConnected ? "专题及公开快照已删除" : "Mock 专题已删除");
+    return true;
+  };
+  const saveProject = async (item: Project, mode: "create" | "edit"): Promise<Project | null> => {
+    if (apiConnected) {
+      try {
+        const remote = mode === "create" ? await createRemoteProject(item) : await updateRemoteProject(item);
+        setWorkspaceProjects((items) => mode === "create" ? [...items, remote] : items.map((current) => current.id === remote.id ? remote : current));
+        flash(mode === "create" ? "项目已创建并同步到 API" : "项目修改已同步到 API");
+        return remote;
+      } catch { flash("项目保存失败，请检查接口或 slug 是否重复", "error"); return null; }
+    }
+    const local = mode === "create" ? { ...item, id: Date.now(), updated: "刚刚" } : { ...item, updated: "刚刚" };
+    setWorkspaceProjects((items) => mode === "create" ? [...items, local] : items.map((current) => current.id === local.id ? local : current));
+    flash(mode === "create" ? "Mock 项目已创建" : "Mock 项目已更新");
+    return local;
+  };
+  const removeProject = async (item: Project): Promise<boolean> => {
+    if (apiConnected) {
+      try { await deleteRemoteProject(item); }
+      catch { flash("项目删除失败，请检查接口后重试", "error"); return false; }
+    }
+    setWorkspaceProjects((items) => items.filter((current) => current.id !== item.id));
+    flash(apiConnected ? "项目及公开快照已删除" : "Mock 项目已删除");
+    return true;
+  };
+  const saveNote = async (item: Note, mode: "create" | "edit"): Promise<Note | null> => {
+    if (apiConnected) {
+      try {
+        const remote = mode === "create" ? await createRemoteNote(item) : await updateRemoteNote(item);
+        setWorkspaceNotes((items) => mode === "create" ? [remote, ...items] : items.map((current) => current.id === remote.id ? remote : current));
+        flash(mode === "create" ? "记录已创建并同步到 API" : "记录修改已同步到 API");
+        return remote;
+      } catch { flash("记录保存失败，请检查接口后重试", "error"); return null; }
+    }
+    const local = mode === "create" ? { ...item, id: Date.now() } : item;
+    setWorkspaceNotes((items) => mode === "create" ? [local, ...items] : items.map((current) => current.id === local.id ? local : current));
+    flash(mode === "create" ? "Mock 记录已创建" : "Mock 记录已更新");
+    return local;
+  };
+  const removeNote = async (item: Note): Promise<boolean> => {
+    if (apiConnected) {
+      try { await deleteRemoteNote(item); }
+      catch { flash("记录删除失败，请检查接口后重试", "error"); return false; }
+    }
+    setWorkspaceNotes((items) => items.filter((current) => current.id !== item.id));
+    flash(apiConnected ? "记录及公开快照已删除" : "Mock 记录已删除");
+    return true;
+  };
   const logout = () => { localStorage.removeItem("myself-admin-session"); setAuthenticated(false); navigate("login"); };
   if (!authenticated || route === "login") return <LoginScreen onSuccess={() => setAuthenticated(true)} />;
-  const page = route === "dashboard" ? <DashboardPage articles={articles} workspaceCollections={workspaceCollections} workspaceProjects={workspaceProjects} onCreate={createArticle} onOpenArticle={(id) => { setSelectedId(id); navigate("articles"); }} /> : route === "articles" ? <ArticlesPage articles={articles} selectedId={selectedId} onSelect={setSelectedId} onCreate={createArticle} onUpdate={updateSelected} onSave={saveDraft} onPublish={publishSelected} onDelete={deleteSelected} /> : route === "collections" ? <CollectionsPage items={workspaceCollections} /> : route === "projects" ? <ProjectsPage items={workspaceProjects} /> : route === "notes" ? <NotesPage items={workspaceNotes} /> : <SettingsPage dark={dark} onToggleDark={() => setDark((value) => !value)} onToast={flash} />;
-  return <div className={`admin-app ${dark ? "is-dark" : ""}`}><Sidebar route={route} open={menuOpen} articleCount={articles.length} onClose={() => setMenuOpen(false)} onLogout={logout} /><main className="admin-main"><Topbar route={route} apiConnected={apiConnected} onOpenMenu={() => setMenuOpen(true)} onToast={flash} />{loading ? <div className="page-loading"><Activity className="spin" size={20} /><span>{apiConnected ? "正在加载 API 数据..." : "正在加载 Mock 数据..."}</span></div> : page}</main><Toast message={toast.message} visible={toast.visible} tone={toast.tone} /></div>;
+  const page = route === "dashboard" ? <DashboardPage articles={articles} workspaceCollections={workspaceCollections} workspaceProjects={workspaceProjects} onCreate={createArticle} onOpenArticle={(id) => { setSelectedId(id); navigate("articles"); }} /> : route === "articles" ? <ArticlesPage articles={articles} selectedId={selectedId} onSelect={setSelectedId} onCreate={createArticle} onUpdate={updateSelected} onSave={saveDraft} onPublish={publishSelected} onDelete={deleteSelected} /> : route === "collections" ? <CollectionsPage items={workspaceCollections} onSave={saveCollection} onDelete={removeCollection} /> : route === "projects" ? <ProjectsPage items={workspaceProjects} onSave={saveProject} onDelete={removeProject} /> : route === "notes" ? <NotesPage items={workspaceNotes} onSave={saveNote} onDelete={removeNote} /> : <SettingsPage dark={dark} onToggleDark={() => setDark((value) => !value)} onToast={flash} />;
+  return <div className={`admin-app ${dark ? "is-dark" : ""}`}><Sidebar route={route} open={menuOpen} counts={{ articles: articles.length, collections: workspaceCollections.length, projects: workspaceProjects.length, notes: workspaceNotes.length }} onClose={() => setMenuOpen(false)} onLogout={logout} /><main className="admin-main"><Topbar route={route} apiConnected={apiConnected} onOpenMenu={() => setMenuOpen(true)} onToast={flash} />{loading ? <div className="page-loading"><Activity className="spin" size={20} /><span>{apiConnected ? "正在加载 API 数据..." : "正在加载 Mock 数据..."}</span></div> : page}</main><Toast message={toast.message} visible={toast.visible} tone={toast.tone} /></div>;
 }
 
 export default App;
