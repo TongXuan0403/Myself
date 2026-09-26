@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import math
+import os
 import re
 import sqlite3
 import json
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
+from pydantic import ValidationError
+
+from .publishing import PublicationValidationError, commit_content_change
 from .models import (
     Article,
     ArticleCreate,
@@ -25,7 +30,7 @@ from .models import (
     Status,
 )
 
-DATABASE_PATH = Path(__file__).resolve().parents[1] / ".data" / "articles.db"
+DATABASE_PATH = Path(os.environ.get("MYSELF_DATABASE_PATH", str(Path(__file__).resolve().parents[1] / ".data" / "articles.db"))).resolve()
 
 SEED_ARTICLE = {
     "title": "从零实现一个个人博客",
@@ -113,7 +118,11 @@ def connect() -> sqlite3.Connection:
 
 
 def initialize_database() -> None:
-    with connect() as connection:
+    with closing(connect()) as connection:
+        _begin_write(connection)
+        existing_tables = {
+            row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS articles (
@@ -133,62 +142,75 @@ def initialize_database() -> None:
             """
         )
         _migrate_schema(connection)
-        if connection.execute("SELECT 1 FROM articles LIMIT 1").fetchone() is None:
+        _create_content_tables(connection)
+        if "articles" not in existing_tables:
             create_article(
                 ArticleCreate(**SEED_ARTICLE),
                 connection=connection,
                 seed_created_at=now(),
             )
-        _create_content_tables(connection)
-        _seed_content_tables(connection)
+        _seed_content_tables(connection, existing_tables)
+        commit_content_change(connection)
 
 
 def _create_content_tables(connection: sqlite3.Connection) -> None:
-    connection.executescript(
+    statements = (
         """
         CREATE TABLE IF NOT EXISTS collections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            slug TEXT NOT NULL UNIQUE,
-            description TEXT NOT NULL DEFAULT '',
-            audience TEXT NOT NULL DEFAULT '',
-            stages TEXT NOT NULL DEFAULT '[]',
-            done INTEGER NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            slug TEXT NOT NULL UNIQUE,
-            summary TEXT NOT NULL DEFAULT '',
-            status TEXT NOT NULL CHECK (status IN ('idea', 'building', 'online')),
-            stack TEXT NOT NULL DEFAULT '[]',
-            result TEXT NOT NULL DEFAULT '',
-            link TEXT NOT NULL DEFAULT '',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            type TEXT NOT NULL,
-            title TEXT NOT NULL,
-            summary TEXT NOT NULL DEFAULT '',
-            tags TEXT NOT NULL DEFAULT '[]',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_collections_updated_at ON collections(updated_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_notes_date ON notes(date DESC, id DESC);
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        description TEXT NOT NULL DEFAULT '',
+        audience TEXT NOT NULL DEFAULT '',
+        stages TEXT NOT NULL DEFAULT '[]',
+        done INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+        )
+        """,
         """
+        CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        summary TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL CHECK (status IN ('idea', 'building', 'online')),
+        stack TEXT NOT NULL DEFAULT '[]',
+        result TEXT NOT NULL DEFAULT '',
+        link TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        summary TEXT NOT NULL DEFAULT '',
+        tags TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+        )
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_collections_updated_at ON collections(updated_at DESC)
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC)
+        """,
+        """
+        CREATE INDEX IF NOT EXISTS idx_notes_date ON notes(date DESC, id DESC)
+        """,
     )
+    for statement in statements:
+        connection.execute(statement)
 
 
-def _seed_content_tables(connection: sqlite3.Connection) -> None:
+def _seed_content_tables(connection: sqlite3.Connection, existing_tables: set[str]) -> None:
     timestamp = now()
-    if connection.execute("SELECT 1 FROM collections LIMIT 1").fetchone() is None:
+    if "collections" not in existing_tables:
         for item in SEED_COLLECTIONS:
             connection.execute(
                 """
@@ -197,7 +219,7 @@ def _seed_content_tables(connection: sqlite3.Connection) -> None:
                 """,
                 {**item, "stages": json.dumps(item["stages"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
             )
-    if connection.execute("SELECT 1 FROM projects LIMIT 1").fetchone() is None:
+    if "projects" not in existing_tables:
         for item in SEED_PROJECTS:
             connection.execute(
                 """
@@ -206,7 +228,7 @@ def _seed_content_tables(connection: sqlite3.Connection) -> None:
                 """,
                 {**item, "stack": json.dumps(item["stack"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
             )
-    if connection.execute("SELECT 1 FROM notes LIMIT 1").fetchone() is None:
+    if "notes" not in existing_tables:
         for item in SEED_NOTES:
             connection.execute(
                 """
@@ -215,7 +237,13 @@ def _seed_content_tables(connection: sqlite3.Connection) -> None:
                 """,
                 {**item, "tags": json.dumps(item["tags"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
             )
-    connection.commit()
+
+
+
+def _begin_write(connection: sqlite3.Connection) -> None:
+    # Serialize the read/merge/write and snapshot export across API workers.
+    if not connection.in_transaction:
+        connection.execute("BEGIN IMMEDIATE")
 
 
 def _existing_columns(connection: sqlite3.Connection) -> set[str]:
@@ -303,6 +331,13 @@ def build_article_values(payload: ArticleCreate | ArticleUpdate, existing: dict[
         incoming = payload.model_dump(exclude_unset=True)
     values = dict(existing or {})
     values.update(incoming)
+    try:
+        validated = ArticleCreate.model_validate(values)
+    except ValidationError as error:
+        raise PublicationValidationError("Invalid article metadata") from error
+    values.update(validated.model_dump())
+    if values["status"] == "published" and not str(values["content"]).strip():
+        raise PublicationValidationError("Published article content cannot be empty")
     if "slug" in values and isinstance(values["slug"], str):
         values["slug"] = values["slug"].strip().lower().replace(" ", "-")
     if "title" in values and isinstance(values["title"], str):
@@ -396,6 +431,7 @@ def create_article(
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         values = build_article_values(payload)
         timestamp = seed_created_at or now()
         values["created_at"] = timestamp
@@ -416,7 +452,8 @@ def create_article(
             values,
         )
         article_id = cursor.lastrowid
-        connection.commit()
+        if seed_created_at is None:
+            commit_content_change(connection)
         return fetch_article(article_id, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -430,6 +467,7 @@ def update_article(article_id: int, payload: ArticleUpdate, *, connection: sqlit
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         existing_row = connection.execute("SELECT * FROM articles WHERE id = ?", (article_id,)).fetchone()
         if existing_row is None:
             raise LookupError("Article not found")
@@ -457,7 +495,7 @@ def update_article(article_id: int, payload: ArticleUpdate, *, connection: sqlit
             """,
             {**values, "id": article_id},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_article(article_id, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -471,6 +509,7 @@ def set_article_status(article_id: int, status: Status, *, connection: sqlite3.C
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         existing = fetch_article(article_id, connection=connection)
         update_payload = ArticleUpdate(status=status)
         values = build_article_values(update_payload, existing.model_dump())
@@ -498,7 +537,7 @@ def set_article_status(article_id: int, status: Status, *, connection: sqlite3.C
                 "reading_time_minutes": values["reading_time_minutes"],
             },
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_article(article_id, connection=connection)
     finally:
         if owns_connection:
@@ -509,10 +548,11 @@ def delete_article(article_id: int, *, connection: sqlite3.Connection | None = N
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         result = connection.execute("DELETE FROM articles WHERE id = ?", (article_id,))
         if result.rowcount == 0:
             raise LookupError("Article not found")
-        connection.commit()
+        commit_content_change(connection)
     finally:
         if owns_connection:
             connection.close()
@@ -591,6 +631,7 @@ def create_collection(payload: CollectionCreate, *, connection: sqlite3.Connecti
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         values = payload.model_dump()
         timestamp = now()
         stages = values.get("stages", [])
@@ -602,7 +643,7 @@ def create_collection(payload: CollectionCreate, *, connection: sqlite3.Connecti
             """,
             {**values, "stages": json.dumps(stages, ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_collection(cursor.lastrowid, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -616,6 +657,7 @@ def update_collection(collection_id: int, payload: CollectionUpdate, *, connecti
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         existing_row = connection.execute("SELECT * FROM collections WHERE id = ?", (collection_id,)).fetchone()
         if existing_row is None:
             raise LookupError("Collection not found")
@@ -633,7 +675,7 @@ def update_collection(collection_id: int, payload: CollectionUpdate, *, connecti
             """,
             {**values, "stages": json.dumps(values["stages"], ensure_ascii=False), "id": collection_id},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_collection(collection_id, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -675,6 +717,7 @@ def create_project(payload: ProjectCreate, *, connection: sqlite3.Connection | N
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         values = payload.model_dump()
         timestamp = now()
         cursor = connection.execute(
@@ -684,7 +727,7 @@ def create_project(payload: ProjectCreate, *, connection: sqlite3.Connection | N
             """,
             {**values, "stack": json.dumps(values.get("stack", []), ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_project(cursor.lastrowid, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -698,6 +741,7 @@ def update_project(project_id: int, payload: ProjectUpdate, *, connection: sqlit
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         existing_row = connection.execute("SELECT * FROM projects WHERE id = ?", (project_id,)).fetchone()
         if existing_row is None:
             raise LookupError("Project not found")
@@ -714,7 +758,7 @@ def update_project(project_id: int, payload: ProjectUpdate, *, connection: sqlit
             """,
             {**values, "stack": json.dumps(values["stack"], ensure_ascii=False), "id": project_id},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_project(project_id, connection=connection)
     except sqlite3.IntegrityError as error:
         connection.rollback()
@@ -759,6 +803,7 @@ def create_note(payload: NoteCreate, *, connection: sqlite3.Connection | None = 
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         values = payload.model_dump(mode="json")
         timestamp = now()
         cursor = connection.execute(
@@ -768,7 +813,7 @@ def create_note(payload: NoteCreate, *, connection: sqlite3.Connection | None = 
             """,
             {**values, "tags": json.dumps(values.get("tags", []), ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_note(cursor.lastrowid, connection=connection)
     finally:
         if owns_connection:
@@ -779,6 +824,7 @@ def update_note(note_id: int, payload: NoteUpdate, *, connection: sqlite3.Connec
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         existing_row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
         if existing_row is None:
             raise LookupError("Note not found")
@@ -795,7 +841,7 @@ def update_note(note_id: int, payload: NoteUpdate, *, connection: sqlite3.Connec
             """,
             {**values, "tags": json.dumps(values["tags"], ensure_ascii=False), "id": note_id},
         )
-        connection.commit()
+        commit_content_change(connection)
         return fetch_note(note_id, connection=connection)
     finally:
         if owns_connection:
@@ -810,10 +856,11 @@ def _delete_content(table: str, label: str, item_id: int, *, connection: sqlite3
     owns_connection = connection is None
     connection = connection or connect()
     try:
+        _begin_write(connection)
         result = connection.execute(f"DELETE FROM {table} WHERE id = ?", (item_id,))
         if result.rowcount == 0:
             raise LookupError(f"{label} not found")
-        connection.commit()
+        commit_content_change(connection)
     finally:
         if owns_connection:
             connection.close()

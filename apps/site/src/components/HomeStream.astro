@@ -11,10 +11,11 @@ const { items } = Astro.props as { items: HomeHighlight[] };
       <span class="index">{item.number}</span>
       <div>
         <small>{item.type}</small>
-        <h2>{item.title}</h2>
+        <h2><a href={item.href}>{item.title}</a></h2>
         <p>{item.description}</p>
       </div>
       <span class="arrow">↗</span>
     </article>
   ))}
+  {items.length === 0 && <p class="empty-state">暂无已发布文章</p>}
 </section>

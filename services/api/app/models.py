@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date as date_type
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 Status = Literal["draft", "published"]
 ProjectStatus = Literal["idea", "building", "online"]
@@ -35,7 +35,16 @@ class ArticleCreate(ArticleBase):
     status: Status = "draft"
 
 
-class ArticleUpdate(BaseModel):
+class ContentUpdate(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def reject_explicit_null(cls, value: object) -> object:
+        if isinstance(value, dict) and any(item is None for item in value.values()):
+            raise ValueError("Update fields cannot be null; omit unchanged fields")
+        return value
+
+
+class ArticleUpdate(ContentUpdate):
     title: str | None = Field(default=None, min_length=1, max_length=180)
     slug: str | None = Field(default=None, min_length=1, max_length=180, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     category: str | None = Field(default=None, min_length=1, max_length=40)
@@ -116,7 +125,7 @@ class CollectionCreate(CollectionBase):
     pass
 
 
-class CollectionUpdate(BaseModel):
+class CollectionUpdate(ContentUpdate):
     title: str | None = Field(default=None, min_length=1, max_length=180)
     slug: str | None = Field(default=None, min_length=1, max_length=180, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: str | None = Field(default=None, max_length=500)
@@ -183,7 +192,7 @@ class ProjectCreate(ProjectBase):
     pass
 
 
-class ProjectUpdate(BaseModel):
+class ProjectUpdate(ContentUpdate):
     name: str | None = Field(default=None, min_length=1, max_length=180)
     slug: str | None = Field(default=None, min_length=1, max_length=180, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     summary: str | None = Field(default=None, max_length=500)
@@ -242,7 +251,7 @@ class NoteCreate(NoteBase):
     pass
 
 
-class NoteUpdate(BaseModel):
+class NoteUpdate(ContentUpdate):
     date: date_type | None = None
     type: str | None = Field(default=None, min_length=1, max_length=40)
     title: str | None = Field(default=None, min_length=1, max_length=180)

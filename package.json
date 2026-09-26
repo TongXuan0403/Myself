@@ -11,7 +11,10 @@
     "check": "npm run check:site && npm run check:admin",
     "check:site": "npm --workspace apps/site run check",
     "check:admin": "npm --workspace apps/admin run typecheck",
-    "check:api": "python -m compileall services/api/app"
+    "check:api": "python -m compileall services/api/app",
+    "test:api": "python -m unittest discover -s services/api/tests -v",
+    "test:site-content": "node --test apps/site/tests/content-build.mjs",
+    "sync:content": "cd services/api && python -m app.export_content"
   },
   "workspaces": [
     "apps/site",

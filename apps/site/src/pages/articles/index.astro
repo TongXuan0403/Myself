@@ -1,17 +1,18 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { articles } from "../../data/content";
+const categories = [...new Set(articles.map((article) => article.category))];
 ---
 <BaseLayout title="文章 / TX Field Notes" description="按分类和关键词浏览全部技术文章。">
   <div class="site-page">
     <p class="site-kicker">ALL WRITING / 01</p>
     <h1>文章。</h1>
     <p class="hero-description">把背景、过程、失败和最终结论写在一起，让一次解决可以被下一次复用。</p>
-    <div class="filter-bar"><input id="article-search" placeholder="搜索标题、分类或标签" aria-label="搜索文章" /><select id="article-category" aria-label="按分类筛选"><option value="全部">全部分类</option><option>项目实战</option><option>前端开发</option><option>思考记录</option><option>工具实验</option></select></div>
+    <div class="filter-bar"><input id="article-search" placeholder="搜索标题、分类或标签" aria-label="搜索文章" /><select id="article-category" aria-label="按分类筛选"><option value="全部">全部分类</option>{categories.map((category) => <option>{category}</option>)}</select></div>
     <div class="article-list" id="article-list">
       {articles.map((article) => <a class="article-row" href={`/articles/${article.slug}/`} data-search={`${article.title}${article.category}${article.tags.join("")}`}><span class="date">{article.date}</span><div><span class="category">{article.category}</span><h3>{article.title}</h3><p>{article.description}</p></div><div class="tag-list">{article.tags.map((tag) => <span>{tag}</span>)}</div><span class="meta">{article.readingTime} MIN</span></a>)}
     </div>
-    <div class="empty-state" id="article-empty" hidden><strong>暂无匹配文章</strong><p>清空关键词或分类后再试。</p></div>
+    <div class="empty-state" id="article-empty" hidden={articles.length > 0}><strong>{articles.length ? "暂无匹配文章" : "暂无已发布文章"}</strong></div>
   </div>
 </BaseLayout>
 <script>

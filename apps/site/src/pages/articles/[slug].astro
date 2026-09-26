@@ -1,8 +1,10 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { articles } from "../../data/content";
+import { render } from "astro:content";
 export function getStaticPaths() { return articles.map((article) => ({ params: { slug: article.slug }, props: { article } })); }
 const { article } = Astro.props;
+const { Content } = await render(article.entry);
 const index = articles.findIndex((item) => item.slug === article.slug);
 const previous = articles[index + 1];
 const next = articles[index - 1];
@@ -10,7 +12,7 @@ const next = articles[index - 1];
 <BaseLayout title={`${article.title} / TX Field Notes`} description={article.description}>
   <article class="article-detail site-page">
     <header class="article-detail-header"><a class="site-kicker" href="/articles/">文章 / {article.category}</a><h1>{article.title}</h1><p class="lead">{article.description}</p><div class="detail-meta"><span>{article.date}</span><span>{article.readingTime} 分钟阅读</span>{article.tags.map((tag) => <span>#{tag}</span>)}</div></header>
-    <div class="article-body">{article.content.map((line) => line.startsWith("## ") ? <h2>{line.replace("## ", "")}</h2> : line.startsWith("```") ? <pre><code>{line.replace("```ts", "").replace("```", "")}</code></pre> : <p>{line}</p>)}</div>
+    <div class="article-body"><Content /></div>
     <footer class="article-nav">{previous ? <a href={`/articles/${previous.slug}/`}><small>上一篇</small><strong>{previous.title}</strong></a> : <span />}{next ? <a href={`/articles/${next.slug}/`}><small>下一篇</small><strong>{next.title}</strong></a> : <span />}</footer>
   </article>
 </BaseLayout>

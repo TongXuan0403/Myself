@@ -8,7 +8,7 @@
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
-- 当前阶段：文章、专题、项目和记录均已接入 FastAPI + SQLite；后台登录、权限路由、文章编辑发布和公开站点全页面已可运行
+- 当前阶段：文章、专题、项目和记录已接入 FastAPI + SQLite；已发布文章同步为 Astro Markdown，四类公开数据从同一快照构建
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
 ## 设计方向
@@ -45,6 +45,7 @@
 18. 增加后台 API 客户端：启动时优先读取 FastAPI 文章数据，文章新建、保存、发布和删除调用 SQLite API；API 不可用时自动保留 Mock 数据体验，并修正 slug 详情路由顺序。
 19. 修正发布动作：点击发布时先同步当前编辑内容，再切换 API 文章状态，避免未保存修改丢失。
 20. 扩展 FastAPI 内容模型和 SQLite 持久化：新增专题、项目、记录三类表、种子数据及列表、详情、新建、更新、删除接口；后台登录后优先读取这些 API 数据，并在接口不可用时回退 Mock 数据。
+21. 将发布内容同步到 `apps/site/src/content/published/`：文章生成带 Front Matter 的 Markdown，专题、项目和记录写入版本化 JSON 快照；Astro 内容集合渲染文章正文，首页、列表、搜索及详情共享公开数据。草稿、撤回和删除不进入下次构建；发布仍需手动构建部署，Git 自动发布尚未实现。详见 [内容发布说明](docs/CONTENT_PUBLISHING.md)。
 
 ## 求职材料
 
@@ -61,7 +62,7 @@ apps/site                 # Astro 公开博客站点
 ├── src/layouts/          # 页面外壳
 ├── src/components/       # 首页区块和公共组件
 ├── src/data/             # 首页文案和展示数据
-├── src/content/          # 内容目录占位
+├── src/content/          # 演示 Markdown 与本地生成的发布内容
 └── src/pages/            # 首页、文章、专题、项目、记录、关于和搜索
 apps/admin                # React + Vite 独立发布后台
 ├── src/App.tsx           # 路由、页面和 Mock 交互入口
@@ -94,4 +95,4 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-当前发布后台已可在 Mock 环境跑通登录、编辑、预览、保存和发布流程；API 可用时文章、专题、项目和记录数据会写入 SQLite，API 不可用时自动回退到 Mock。正式使用前仍需接入 Markdown 文件管理、内容审核状态和 GitHub Actions 自动提交。完整状态、风险和实施顺序见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。
+后台可在 Mock 环境跑通登录、编辑、预览、保存和发布；API 可用时写入 SQLite 并同步本地公开内容。API 不可用时后台回退 Mock，此时不会产生可构建的发布内容。发布成功表示 Markdown 和快照已同步，不表示网站已上线；仍需重新构建和部署。API 尚无身份认证，不能直接暴露到公网。操作及故障恢复见 [内容发布说明](docs/CONTENT_PUBLISHING.md)，进度与下一步见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。

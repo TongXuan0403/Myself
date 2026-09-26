@@ -3,5 +3,5 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { projects } from "../../data/content";
 ---
 <BaseLayout title="项目 / TX Field Notes" description="真实项目与实现过程。">
-  <div class="site-page"><p class="site-kicker">PROJECT LAB / 03</p><h1>项目。</h1><p class="hero-description">不只展示名称和技术栈，也记录为什么做、怎么做和最后留下了什么。</p><div class="project-grid">{projects.map((project) => <a class="project-card" href={`/projects/${project.slug}/`}><span class="project-status">{project.status}</span><h2>{project.name}</h2><p>{project.summary}</p><div class="stack-list">{project.stack.map((item) => <span>{item}</span>)}</div></a>)}</div></div>
+  <div class="site-page"><p class="site-kicker">PROJECT LAB / 03</p><h1>项目。</h1><p class="hero-description">不只展示名称和技术栈，也记录为什么做、怎么做和最后留下了什么。</p><div class="project-grid">{projects.map((project) => <a class="project-card" href={`/projects/${project.slug}/`}><span class="project-status">{project.status}</span><h2>{project.name}</h2><p>{project.summary}</p><div class="stack-list">{project.stack.map((item) => <span>{item}</span>)}</div></a>)}</div>{projects.length === 0 && <div class="empty-state">暂无项目</div>}</div>
 </BaseLayout>

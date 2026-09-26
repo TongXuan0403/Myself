@@ -3,5 +3,5 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { series } from "../../data/content";
 ---
 <BaseLayout title="专题 / TX Field Notes" description="按学习路径组织的技术专题。">
-  <div class="site-page"><p class="site-kicker">LEARNING PATHS / 02</p><h1>专题。</h1><p class="hero-description">把零散文章串成有顺序的实践路径，知道下一步读什么，也知道最终要做出什么。</p><div class="collection-grid">{series.map((item) => <a class="collection-card" href={`/collections/${item.slug}/`}><span class="meta">{item.done}/{item.count} 篇完成</span><h2>{item.title}</h2><p>{item.description}</p><div class="progress-line"><span style={`width:${item.done / item.count * 100}%`} /></div><small>{item.audience}</small></a>)}</div></div>
+  <div class="site-page"><p class="site-kicker">LEARNING PATHS / 02</p><h1>专题。</h1><p class="hero-description">把零散文章串成有顺序的实践路径，知道下一步读什么，也知道最终要做出什么。</p><div class="collection-grid">{series.map((item) => <a class="collection-card" href={`/collections/${item.slug}/`}><span class="meta">{item.done}/{item.count} 阶段完成</span><h2>{item.title}</h2><p>{item.description}</p><div class="progress-line"><span style={`width:${item.count ? item.done / item.count * 100 : 0}%`} /></div><small>{item.audience}</small></a>)}</div>{series.length === 0 && <div class="empty-state">暂无专题</div>}</div>
 </BaseLayout>

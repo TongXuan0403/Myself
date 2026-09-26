@@ -1,9 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { series, articles } from "../../data/content";
+import { series } from "../../data/content";
 export function getStaticPaths() { return series.map((item) => ({ params: { slug: item.slug }, props: { item } })); }
 const { item } = Astro.props;
 ---
 <BaseLayout title={`${item.title} / TX Field Notes`} description={item.description}>
-  <div class="site-page"><a class="site-kicker" href="/collections/">专题 / 学习路径</a><h1>{item.title}。</h1><p class="hero-description">{item.description}<br />{item.audience}</p><div class="band"><div class="band-heading"><h2>路线进度</h2><span class="meta">{item.done} / {item.count} COMPLETE</span></div><div class="timeline">{item.stages.map((stage, index) => <div class="timeline-row"><time>0{index + 1}</time><div><h3>{stage}</h3><p>{index < item.done ? "已完成，继续阅读并留下自己的实践记录。" : "等待进入这一阶段。"}</p>{index < item.done && <a class="meta" href={articles[index] ? `/articles/${articles[index].slug}/` : "/articles/"}>阅读相关文章 ↗</a>}</div></div>)}</div></div></div>
+  <div class="site-page"><a class="site-kicker" href="/collections/">专题 / 学习路径</a><h1>{item.title}。</h1><p class="hero-description">{item.description}<br />{item.audience}</p><div class="band"><div class="band-heading"><h2>路线进度</h2><span class="meta">{item.done} / {item.count} COMPLETE</span></div><div class="timeline">{item.stages.map((stage, index) => <div class="timeline-row"><time>0{index + 1}</time><div><h3>{stage}</h3><p>{index < item.done ? "已完成，继续阅读并留下自己的实践记录。" : "等待进入这一阶段。"}</p></div></div>)}</div></div></div>
 </BaseLayout>

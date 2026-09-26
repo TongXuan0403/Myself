@@ -9,7 +9,7 @@ import {
 import type { Article, ArticlePatch, ArticleStatus } from "./types/article";
 import { createDraftArticle } from "./types/article";
 import { initialArticles } from "./data/articles";
-import { createRemoteArticle, deleteRemoteArticle, fetchArticles, fetchWorkspaceContent, publishRemoteArticle, updateRemoteArticle } from "./data/api";
+import { createRemoteArticle, deleteRemoteArticle, fetchArticles, fetchWorkspaceContent, updateRemoteArticle } from "./data/api";
 import type { Collection, Note, Project } from "./types/content";
 
 type Route = "dashboard" | "articles" | "collections" | "projects" | "notes" | "settings";
@@ -116,13 +116,11 @@ function App() {
     let active = true;
     Promise.all([fetchArticles(), fetchWorkspaceContent()]).then(([remoteArticles, remoteContent]) => {
       if (!active) return;
-      if (remoteArticles.length > 0) {
-        setArticles(remoteArticles);
-        setSelectedId((current) => remoteArticles.some((article) => article.id === current) ? current : remoteArticles[0].id);
-      }
-      if (remoteContent.collections.length > 0) setWorkspaceCollections(remoteContent.collections);
-      if (remoteContent.projects.length > 0) setWorkspaceProjects(remoteContent.projects);
-      if (remoteContent.notes.length > 0) setWorkspaceNotes(remoteContent.notes);
+      setArticles(remoteArticles);
+      setSelectedId((current) => remoteArticles.some((article) => article.id === current) ? current : remoteArticles[0]?.id ?? null);
+      setWorkspaceCollections(remoteContent.collections);
+      setWorkspaceProjects(remoteContent.projects);
+      setWorkspaceNotes(remoteContent.notes);
       setApiConnected(true);
     }).catch(() => { if (active) setApiConnected(false); });
     return () => { active = false; };
@@ -149,20 +147,19 @@ function App() {
     if (!selected || !selected.title.trim() || !selected.content.trim()) { flash("标题和正文不能为空", "error"); return; }
     if (apiConnected) {
       try {
-        const synced = await updateRemoteArticle(selected, { status: "草稿" });
-        const remote = await publishRemoteArticle(synced);
+        const remote = await updateRemoteArticle(selected, { status: "已发布" });
         setArticles((items) => items.map((item) => item.id === remote.id ? remote : item));
-        flash("文章已发布，正在构建公开站点");
+        flash("Markdown 已同步，等待构建与部署");
         return;
       }
       catch { flash("API 发布失败，请检查接口后重试", "error"); return; }
     }
-    setArticles((items) => items.map((item) => item.id === selected.id ? { ...item, status: "已发布", updated: "刚刚" } : item)); flash("文章已发布，正在构建公开站点");
+    setArticles((items) => items.map((item) => item.id === selected.id ? { ...item, status: "已发布", updated: "刚刚" } : item)); flash("仅更新 Mock 状态，未同步公开站点");
   };
   const deleteSelected = async () => {
     if (!selected) return;
     if (apiConnected) { try { await deleteRemoteArticle(selected); } catch { flash("API 删除失败，请检查接口后重试", "error"); return; } }
-    setArticles((items) => items.filter((item) => item.id !== selected.id)); setSelectedId(null); flash("文章已移入回收站");
+    setArticles((items) => items.filter((item) => item.id !== selected.id)); setSelectedId(null); flash(apiConnected ? "文章及公开内容已删除" : "Mock 文章已删除");
   };
   const logout = () => { localStorage.removeItem("myself-admin-session"); setAuthenticated(false); navigate("login"); };
   if (!authenticated || route === "login") return <LoginScreen onSuccess={() => setAuthenticated(true)} />;
