@@ -1,4 +1,5 @@
 import type { Article, ArticlePatch } from "../types/article";
+import type { Collection, Note, Project, WorkspaceContent } from "../types/content";
 
 type ApiStatus = "draft" | "published";
 
@@ -11,6 +12,38 @@ type ApiArticle = {
   excerpt: string;
   content: string;
   updated_at: string;
+};
+
+type ApiCollection = {
+  id: number;
+  slug: string;
+  title: string;
+  description: string;
+  audience: string;
+  stages: string[];
+  done: number;
+  updated_at: string;
+};
+
+type ApiProject = {
+  id: number;
+  name: string;
+  slug: string;
+  summary: string;
+  status: "idea" | "building" | "online";
+  stack: string[];
+  result: string;
+  link: string;
+  updated_at: string;
+};
+
+type ApiNote = {
+  id: number;
+  date: string;
+  type: string;
+  title: string;
+  summary: string;
+  tags: string[];
 };
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
@@ -32,6 +65,39 @@ function toArticle(article: ApiArticle): Article {
     content: article.content,
     slug: article.slug,
   };
+}
+
+function toCollection(item: ApiCollection, index: number): Collection {
+  return {
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    description: item.description,
+    audience: item.audience,
+    stages: item.stages,
+    count: item.stages.length,
+    done: item.done,
+    color: ["coral", "sage", "ink"][index % 3],
+    updated: `更新于 ${formatUpdated(item.updated_at)}`,
+  };
+}
+
+function toProject(item: ApiProject): Project {
+  return {
+    id: item.id,
+    slug: item.slug,
+    name: item.name,
+    summary: item.summary,
+    status: item.status === "online" ? "已上线" : item.status === "building" ? "开发中" : "构思中",
+    stack: item.stack,
+    result: item.result,
+    updated: `最近更新 ${formatUpdated(item.updated_at)}`,
+    link: item.link,
+  };
+}
+
+function toNote(item: ApiNote): Note {
+  return { id: item.id, date: item.date, type: item.type, title: item.title, summary: item.summary, tags: item.tags };
 }
 
 function slugify(title: string): string {
@@ -71,6 +137,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export async function fetchArticles(): Promise<Article[]> {
   const articles = await request<ApiArticle[]>("/api/articles");
   return articles.map(toArticle);
+}
+
+export async function fetchWorkspaceContent(): Promise<WorkspaceContent> {
+  const [remoteCollections, remoteProjects, remoteNotes] = await Promise.all([
+    request<ApiCollection[]>("/api/collections"),
+    request<ApiProject[]>("/api/projects"),
+    request<ApiNote[]>("/api/notes"),
+  ]);
+  return {
+    collections: remoteCollections.map(toCollection),
+    projects: remoteProjects.map(toProject),
+    notes: remoteNotes.map(toNote),
+  };
 }
 
 export async function createRemoteArticle(article: Article): Promise<Article> {

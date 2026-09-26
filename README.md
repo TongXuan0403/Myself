@@ -8,7 +8,7 @@
 - 已完成产品与视觉设计需求：见 [BLOG_DESIGN_REQUIREMENTS.md](docs/BLOG_DESIGN_REQUIREMENTS.md)
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
-- 当前阶段：前端页面与 Mock 业务流程已完成，文章工作流已接入 FastAPI；后台登录、权限路由、文章编辑发布和公开站点全页面已可运行
+- 当前阶段：文章、专题、项目和记录均已接入 FastAPI + SQLite；后台登录、权限路由、文章编辑发布和公开站点全页面已可运行
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
 ## 设计方向
@@ -44,6 +44,7 @@
 17. 使用 Playwright + Microsoft Edge fallback 验证登录、路由跳转、错误态、空状态、文章预览、站点搜索和移动导航，修复登录状态同步及 favicon 404。
 18. 增加后台 API 客户端：启动时优先读取 FastAPI 文章数据，文章新建、保存、发布和删除调用 SQLite API；API 不可用时自动保留 Mock 数据体验，并修正 slug 详情路由顺序。
 19. 修正发布动作：点击发布时先同步当前编辑内容，再切换 API 文章状态，避免未保存修改丢失。
+20. 扩展 FastAPI 内容模型和 SQLite 持久化：新增专题、项目、记录三类表、种子数据及列表、详情、新建、更新、删除接口；后台登录后优先读取这些 API 数据，并在接口不可用时回退 Mock 数据。
 
 Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/demo/`。
 
@@ -89,4 +90,4 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-当前发布后台已可在 Mock 环境跑通登录、编辑、预览、保存和发布流程；API 可用时文章 CRUD 会写入 SQLite，API 不可用时自动回退到 Mock。正式使用前仍需接入 Markdown 文件管理、内容审核状态和 GitHub Actions 自动提交。完整状态、风险和实施顺序见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。
+当前发布后台已可在 Mock 环境跑通登录、编辑、预览、保存和发布流程；API 可用时文章、专题、项目和记录数据会写入 SQLite，API 不可用时自动回退到 Mock。正式使用前仍需接入 Markdown 文件管理、内容审核状态和 GitHub Actions 自动提交。完整状态、风险和实施顺序见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)。

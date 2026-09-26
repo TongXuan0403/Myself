@@ -3,11 +3,27 @@ from __future__ import annotations
 import math
 import re
 import sqlite3
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
-from .models import Article, ArticleCreate, ArticleUpdate, DashboardSummary, Status
+from .models import (
+    Article,
+    ArticleCreate,
+    ArticleUpdate,
+    Collection,
+    CollectionCreate,
+    CollectionUpdate,
+    DashboardSummary,
+    Note,
+    NoteCreate,
+    NoteUpdate,
+    Project,
+    ProjectCreate,
+    ProjectUpdate,
+    Status,
+)
 
 DATABASE_PATH = Path(__file__).resolve().parents[1] / ".data" / "articles.db"
 
@@ -19,6 +35,70 @@ SEED_ARTICLE = {
     "excerpt": "记录博客从设计到部署的过程。",
     "content": "# 从零实现一个个人博客\n\n记录实现过程。",
 }
+
+SEED_COLLECTIONS = [
+    {
+        "title": "个人博客从零实现",
+        "slug": "personal-blog",
+        "description": "从信息架构到自动部署，完整记录一个内容站点的构建过程。",
+        "audience": "适合想做个人内容站点的开发者",
+        "stages": ["技术选型", "页面设计", "Markdown 渲染", "自动部署", "性能优化"],
+        "done": 3,
+    },
+    {
+        "title": "前端界面实验室",
+        "slug": "frontend-lab",
+        "description": "网格、动效和可访问性相关的小型实践。",
+        "audience": "适合关注体验细节的前端开发者",
+        "stages": ["布局", "层级", "状态", "动效", "可访问性"],
+        "done": 5,
+    },
+    {
+        "title": "AI 工具工作流",
+        "slug": "ai-workflow",
+        "description": "把 AI 放进真实开发流程的记录和复盘。",
+        "audience": "适合希望提高开发效率的实践者",
+        "stages": ["需求拆解", "提示词设计", "代码协作", "效果复盘"],
+        "done": 1,
+    },
+]
+
+SEED_PROJECTS = [
+    {
+        "name": "Myself / Field Notes",
+        "slug": "myself-field-notes",
+        "summary": "兼顾自动发布和视觉表达的个人技术博客。",
+        "status": "building",
+        "stack": ["Astro", "React", "FastAPI"],
+        "result": "公开站点和发布后台已经跑通 Mock 流程。",
+        "link": "github.com/TongXuan0403/Myself",
+    },
+    {
+        "name": "Release Desk",
+        "slug": "release-desk",
+        "summary": "一个为单作者设计的 Markdown 发布工作台。",
+        "status": "online",
+        "stack": ["TypeScript", "Vite", "SQLite"],
+        "result": "支持草稿、预览、校验和发布状态反馈。",
+        "link": "github.com/TongXuan0403/release-desk",
+    },
+    {
+        "name": "Prompt Atlas",
+        "slug": "prompt-atlas",
+        "summary": "整理可复用的 AI 工具提示词与评测样例。",
+        "status": "idea",
+        "stack": ["Next.js", "OpenAI"],
+        "result": "正在整理第一批真实开发任务样例。",
+        "link": "github.com/TongXuan0403/prompt-atlas",
+    },
+]
+
+SEED_NOTES = [
+    {"date": "2026-09-04", "type": "项目进展", "title": "开始搭建发布后台", "summary": "先把登录、路由、文章编辑和发布反馈做成一条可以跑通的 Mock 流程。", "tags": ["博客", "前端"]},
+    {"date": "2026-09-02", "type": "学习笔记", "title": "Astro Islands 的边界", "summary": "把交互留给需要它的组件，其余页面保持静态输出。", "tags": ["Astro", "性能"]},
+    {"date": "2026-08-29", "type": "问题解决", "title": "为 Markdown 文章补齐空状态", "summary": "空状态不是错误，它应该告诉用户下一步能做什么。", "tags": ["UX", "内容"]},
+    {"date": "2026-08-26", "type": "工具尝试", "title": "用 Playwright 记录关键交互", "summary": "把加载、表单校验和移动端菜单列入每次发布前的快速检查。", "tags": ["测试", "自动化"]},
+]
 
 
 def now() -> str:
@@ -59,6 +139,83 @@ def initialize_database() -> None:
                 connection=connection,
                 seed_created_at=now(),
             )
+        _create_content_tables(connection)
+        _seed_content_tables(connection)
+
+
+def _create_content_tables(connection: sqlite3.Connection) -> None:
+    connection.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS collections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            description TEXT NOT NULL DEFAULT '',
+            audience TEXT NOT NULL DEFAULT '',
+            stages TEXT NOT NULL DEFAULT '[]',
+            done INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            summary TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL CHECK (status IN ('idea', 'building', 'online')),
+            stack TEXT NOT NULL DEFAULT '[]',
+            result TEXT NOT NULL DEFAULT '',
+            link TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT NOT NULL DEFAULT '',
+            tags TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_collections_updated_at ON collections(updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_notes_date ON notes(date DESC, id DESC);
+        """
+    )
+
+
+def _seed_content_tables(connection: sqlite3.Connection) -> None:
+    timestamp = now()
+    if connection.execute("SELECT 1 FROM collections LIMIT 1").fetchone() is None:
+        for item in SEED_COLLECTIONS:
+            connection.execute(
+                """
+                INSERT INTO collections (title, slug, description, audience, stages, done, created_at, updated_at)
+                VALUES (:title, :slug, :description, :audience, :stages, :done, :created_at, :updated_at)
+                """,
+                {**item, "stages": json.dumps(item["stages"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+            )
+    if connection.execute("SELECT 1 FROM projects LIMIT 1").fetchone() is None:
+        for item in SEED_PROJECTS:
+            connection.execute(
+                """
+                INSERT INTO projects (name, slug, summary, status, stack, result, link, created_at, updated_at)
+                VALUES (:name, :slug, :summary, :status, :stack, :result, :link, :created_at, :updated_at)
+                """,
+                {**item, "stack": json.dumps(item["stack"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+            )
+    if connection.execute("SELECT 1 FROM notes LIMIT 1").fetchone() is None:
+        for item in SEED_NOTES:
+            connection.execute(
+                """
+                INSERT INTO notes (date, type, title, summary, tags, created_at, updated_at)
+                VALUES (:date, :type, :title, :summary, :tags, :created_at, :updated_at)
+                """,
+                {**item, "tags": json.dumps(item["tags"], ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+            )
+    connection.commit()
 
 
 def _existing_columns(connection: sqlite3.Connection) -> set[str]:
@@ -375,6 +532,288 @@ def dashboard_summary(*, connection: sqlite3.Connection | None = None) -> Dashbo
             draft_articles=draft_articles,
             latest_articles=latest_articles,
         )
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def _decode_list(value: str) -> list[str]:
+    try:
+        decoded = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    return decoded if isinstance(decoded, list) else []
+
+
+def row_to_collection(row: sqlite3.Row) -> Collection:
+    data = dict(row)
+    data["stages"] = _decode_list(data.get("stages", "[]"))
+    return Collection(**data)
+
+
+def row_to_project(row: sqlite3.Row) -> Project:
+    data = dict(row)
+    data["stack"] = _decode_list(data.get("stack", "[]"))
+    return Project(**data)
+
+
+def row_to_note(row: sqlite3.Row) -> Note:
+    data = dict(row)
+    data["tags"] = _decode_list(data.get("tags", "[]"))
+    return Note(**data)
+
+
+def fetch_collection(collection_id: int, *, connection: sqlite3.Connection | None = None) -> Collection:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        row = connection.execute("SELECT * FROM collections WHERE id = ?", (collection_id,)).fetchone()
+        if row is None:
+            raise LookupError("Collection not found")
+        return row_to_collection(row)
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def list_collections(*, connection: sqlite3.Connection | None = None) -> list[Collection]:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        rows = connection.execute("SELECT * FROM collections ORDER BY updated_at DESC, id DESC").fetchall()
+        return [row_to_collection(row) for row in rows]
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def create_collection(payload: CollectionCreate, *, connection: sqlite3.Connection | None = None) -> Collection:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        values = payload.model_dump()
+        timestamp = now()
+        stages = values.get("stages", [])
+        values["done"] = min(values.get("done", 0), len(stages))
+        cursor = connection.execute(
+            """
+            INSERT INTO collections (title, slug, description, audience, stages, done, created_at, updated_at)
+            VALUES (:title, :slug, :description, :audience, :stages, :done, :created_at, :updated_at)
+            """,
+            {**values, "stages": json.dumps(stages, ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+        )
+        connection.commit()
+        return fetch_collection(cursor.lastrowid, connection=connection)
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        raise ValueError("Collection slug already exists") from error
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def update_collection(collection_id: int, payload: CollectionUpdate, *, connection: sqlite3.Connection | None = None) -> Collection:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        existing_row = connection.execute("SELECT * FROM collections WHERE id = ?", (collection_id,)).fetchone()
+        if existing_row is None:
+            raise LookupError("Collection not found")
+        existing = dict(existing_row)
+        existing["stages"] = _decode_list(existing.get("stages", "[]"))
+        values = {**existing, **payload.model_dump(exclude_unset=True)}
+        values["updated_at"] = now()
+        values["done"] = min(values.get("done", 0), len(values.get("stages", [])))
+        connection.execute(
+            """
+            UPDATE collections
+            SET title = :title, slug = :slug, description = :description, audience = :audience,
+                stages = :stages, done = :done, updated_at = :updated_at
+            WHERE id = :id
+            """,
+            {**values, "stages": json.dumps(values["stages"], ensure_ascii=False), "id": collection_id},
+        )
+        connection.commit()
+        return fetch_collection(collection_id, connection=connection)
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        raise ValueError("Collection slug already exists") from error
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def delete_collection(collection_id: int, *, connection: sqlite3.Connection | None = None) -> None:
+    _delete_content("collections", "Collection", collection_id, connection=connection)
+
+
+def fetch_project(project_id: int, *, connection: sqlite3.Connection | None = None) -> Project:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        row = connection.execute("SELECT * FROM projects WHERE id = ?", (project_id,)).fetchone()
+        if row is None:
+            raise LookupError("Project not found")
+        return row_to_project(row)
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def list_projects(*, connection: sqlite3.Connection | None = None) -> list[Project]:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        rows = connection.execute("SELECT * FROM projects ORDER BY updated_at DESC, id DESC").fetchall()
+        return [row_to_project(row) for row in rows]
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def create_project(payload: ProjectCreate, *, connection: sqlite3.Connection | None = None) -> Project:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        values = payload.model_dump()
+        timestamp = now()
+        cursor = connection.execute(
+            """
+            INSERT INTO projects (name, slug, summary, status, stack, result, link, created_at, updated_at)
+            VALUES (:name, :slug, :summary, :status, :stack, :result, :link, :created_at, :updated_at)
+            """,
+            {**values, "stack": json.dumps(values.get("stack", []), ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+        )
+        connection.commit()
+        return fetch_project(cursor.lastrowid, connection=connection)
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        raise ValueError("Project slug already exists") from error
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def update_project(project_id: int, payload: ProjectUpdate, *, connection: sqlite3.Connection | None = None) -> Project:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        existing_row = connection.execute("SELECT * FROM projects WHERE id = ?", (project_id,)).fetchone()
+        if existing_row is None:
+            raise LookupError("Project not found")
+        existing = dict(existing_row)
+        existing["stack"] = _decode_list(existing.get("stack", "[]"))
+        values = {**existing, **payload.model_dump(exclude_unset=True)}
+        values["updated_at"] = now()
+        connection.execute(
+            """
+            UPDATE projects
+            SET name = :name, slug = :slug, summary = :summary, status = :status,
+                stack = :stack, result = :result, link = :link, updated_at = :updated_at
+            WHERE id = :id
+            """,
+            {**values, "stack": json.dumps(values["stack"], ensure_ascii=False), "id": project_id},
+        )
+        connection.commit()
+        return fetch_project(project_id, connection=connection)
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+        raise ValueError("Project slug already exists") from error
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def delete_project(project_id: int, *, connection: sqlite3.Connection | None = None) -> None:
+    _delete_content("projects", "Project", project_id, connection=connection)
+
+
+def fetch_note(note_id: int, *, connection: sqlite3.Connection | None = None) -> Note:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+        if row is None:
+            raise LookupError("Note not found")
+        return row_to_note(row)
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def list_notes(*, note_type: str | None = None, connection: sqlite3.Connection | None = None) -> list[Note]:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        if note_type:
+            rows = connection.execute("SELECT * FROM notes WHERE type = ? ORDER BY date DESC, id DESC", (note_type,)).fetchall()
+        else:
+            rows = connection.execute("SELECT * FROM notes ORDER BY date DESC, id DESC").fetchall()
+        return [row_to_note(row) for row in rows]
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def create_note(payload: NoteCreate, *, connection: sqlite3.Connection | None = None) -> Note:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        values = payload.model_dump(mode="json")
+        timestamp = now()
+        cursor = connection.execute(
+            """
+            INSERT INTO notes (date, type, title, summary, tags, created_at, updated_at)
+            VALUES (:date, :type, :title, :summary, :tags, :created_at, :updated_at)
+            """,
+            {**values, "tags": json.dumps(values.get("tags", []), ensure_ascii=False), "created_at": timestamp, "updated_at": timestamp},
+        )
+        connection.commit()
+        return fetch_note(cursor.lastrowid, connection=connection)
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def update_note(note_id: int, payload: NoteUpdate, *, connection: sqlite3.Connection | None = None) -> Note:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        existing_row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+        if existing_row is None:
+            raise LookupError("Note not found")
+        existing = dict(existing_row)
+        existing["tags"] = _decode_list(existing.get("tags", "[]"))
+        values = {**existing, **payload.model_dump(mode="json", exclude_unset=True)}
+        values["updated_at"] = now()
+        connection.execute(
+            """
+            UPDATE notes
+            SET date = :date, type = :type, title = :title, summary = :summary,
+                tags = :tags, updated_at = :updated_at
+            WHERE id = :id
+            """,
+            {**values, "tags": json.dumps(values["tags"], ensure_ascii=False), "id": note_id},
+        )
+        connection.commit()
+        return fetch_note(note_id, connection=connection)
+    finally:
+        if owns_connection:
+            connection.close()
+
+
+def delete_note(note_id: int, *, connection: sqlite3.Connection | None = None) -> None:
+    _delete_content("notes", "Note", note_id, connection=connection)
+
+
+def _delete_content(table: str, label: str, item_id: int, *, connection: sqlite3.Connection | None = None) -> None:
+    owns_connection = connection is None
+    connection = connection or connect()
+    try:
+        result = connection.execute(f"DELETE FROM {table} WHERE id = ?", (item_id,))
+        if result.rowcount == 0:
+            raise LookupError(f"{label} not found")
+        connection.commit()
     finally:
         if owns_connection:
             connection.close()
