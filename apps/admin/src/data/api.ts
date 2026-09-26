@@ -94,4 +94,3 @@ export async function publishRemoteArticle(article: Article): Promise<Article> {
 export async function deleteRemoteArticle(article: Article): Promise<void> {
   await request<void>(`/api/articles/${article.id}`, { method: "DELETE" });
 }
-
