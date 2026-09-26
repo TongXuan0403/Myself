@@ -25,6 +25,7 @@
 | Git commit 自动发布 | 未开始 | 尚未实现发布后的自动提交和推送 |
 | 自动构建与部署 | 未开始 | 尚未配置 GitHub Actions 和生产部署 |
 | 公开站点服务器 | 已部署 | Astro 静态站点运行于 `http://47.109.193.62/`，Ubuntu + Nginx；当前 HTTP，尚未绑定域名/TLS |
+| Docker 一键发布 | 已完成首版 | Compose 编排 API、自动构建器、后台和 Nginx；管理员登录使用 Bearer 会话，发布后自动重建站点 |
 | 搜索、RSS、SEO | 规划中 | 已写入需求，尚未接入正式站点 |
 
 ## 3. 已完成内容
@@ -108,7 +109,7 @@ services/api/__pycache__/     # Python 缓存
 ## 5. 本阶段前端交付
 
 - 后台路由使用 hash 方案，未登录访问业务路由会回到 `#/login`。
-- 演示账号：`tongxuan@example.com` / `123456`。
+- 后台登录已改为 API 管理员会话；账号和密码只从运行环境 `.env.production` 读取。
 - 文章页覆盖搜索、状态筛选、空状态、模拟 503 错误、编辑、预览、保存、校验、发布和删除。
 - 概览页覆盖运行状态、最近编辑、快速入口和发布记录；专题、项目、记录、设置页均有选中态和反馈。
 - 无快照时公开站点仍生成 16 个演示路由；存在快照时仅根据公开内容生成路由，文章搜索与分类筛选在浏览器端执行。
@@ -116,10 +117,11 @@ services/api/__pycache__/     # Python 缓存
 - 已使用 Playwright + Microsoft Edge 验证登录后专题、项目、记录的新建、编辑和删除闭环，检查 API 反馈、控制台健康以及 390×844 移动端记录编辑器。
 - 已将当前 Astro 静态站点部署至 Ubuntu + Nginx；公网首页、文章详情和 favicon 返回 200，桌面筛选/文章阅读与移动导航通过 Playwright 检查。
 - 部署采用带时间戳的 release 目录和 `current` 软链接，支持切回上一版本；首次部署保留了 Nginx 默认站点配置备份。
+- 已加入 Docker Compose 生产编排、管理员 Bearer 登录和内容变化自动构建器；真实密码只通过服务器 `.env.production` 提供。
 
 ## 6. 下一步实施顺序
 
-1. 实现受控发布流程：校验内容、创建 Git commit、推送 GitHub。
+1. 将 Docker Compose 编排部署到服务器并验证持久化卷、登录和一键发布。
 2. 为站点绑定域名并启用 HTTPS，按新域名更新 canonical 配置。
 3. 配置 GitHub Actions，完成构建、部署和失败回滚；改用受限 SSH key/CI secret。
 4. 接入搜索、RSS、sitemap、Open Graph 和基础 SEO。
@@ -127,11 +129,11 @@ services/api/__pycache__/     # Python 缓存
 
 ## 7. 当前风险与约束
 
-- API 尚未提供身份认证，不能直接暴露到公网。
+- API 已增加管理员 Bearer 会话保护；仍应通过 Nginx 同源代理，不要直接暴露 API 容器端口。
 - SQLite 适合第一代单作者场景，后续需根据内容量和访问量评估迁移方案。
 - 自动发布涉及 GitHub Token、构建权限和部署凭据，必须只保存在服务端或 CI 环境。
 - 公开站点已经可从 API 生成的 Markdown 构建，但没有自动 Git 发布和 CI 部署；不能宣称“点击发布即可上线”。本地生成目录和数据库不纳入 Git，部署时须传递快照与其引用的 Markdown。
-- 服务器目前通过裸 IP 提供 HTTP；浏览器到站点的流量尚无 TLS 加密。未部署 API 和管理后台，因 API 尚无认证，继续保持不公开。
+- 服务器目前通过裸 IP 提供 HTTP；浏览器到站点的流量尚无 TLS 加密。Docker Compose 编排尚未切换到服务器生产运行模式。
 
 ## 8. 相关文档
 
@@ -139,4 +141,5 @@ services/api/__pycache__/     # Python 缓存
 - [项目版本路线图](PROJECT_ROADMAP.md)
 - [内容发布与重同步](CONTENT_PUBLISHING.md)
 - [服务器部署与回滚](DEPLOYMENT.md)
+- [Docker 一键发布](DOCKER_PUBLISHING.md)
 - [项目 README](../README.md)

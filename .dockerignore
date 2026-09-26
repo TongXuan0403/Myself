@@ -1,0 +1,9 @@
+.git
+.astro
+dist
+node_modules
+apps/site/.tmp-content-build-*
+services/api/.data
+jl
+*.db
+*.tmp

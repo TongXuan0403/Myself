@@ -48,6 +48,17 @@ type ApiNote = {
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
+export async function loginRemote(email: string, password: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) throw new Error((await response.json().catch(() => null))?.detail ?? "登录失败");
+  const body = await response.json() as { access_token: string };
+  localStorage.setItem("myself-admin-token", body.access_token);
+}
+
 function formatUpdated(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -155,10 +166,12 @@ function toNotePayload(item: Note) {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("myself-admin-token");
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init?.headers ?? {}) },
   });
+  if (response.status === 401) localStorage.removeItem("myself-admin-token");
   if (!response.ok) {
     const body = await response.text();
     throw new Error(body || `API request failed: ${response.status}`);

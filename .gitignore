@@ -6,6 +6,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.production.example
 services/api/.data/
 apps/site/src/content/published/snapshot.json
 apps/site/src/content/published/articles/article-*.md

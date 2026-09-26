@@ -20,6 +20,7 @@ import {
   deleteRemoteProject,
   fetchArticles,
   fetchWorkspaceContent,
+  loginRemote,
   updateRemoteArticle,
   updateRemoteCollection,
   updateRemoteNote,
@@ -67,12 +68,12 @@ function useRoute() {
 function navigate(route: Route | "login") { window.location.hash = `#/${route}`; }
 
 function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
-  const [email, setEmail] = useState("tongxuan@example.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const submit = (event: React.FormEvent) => { event.preventDefault(); setError(""); if (!email.trim() || !password.trim()) { setError("请输入邮箱和密码。"); return; } setLoading(true); window.setTimeout(() => { if (email !== "tongxuan@example.com" || password !== "123456") { setError("账号或密码不正确，请使用演示账号。"); setLoading(false); return; } localStorage.setItem("myself-admin-session", "active"); onSuccess(); navigate("dashboard"); setLoading(false); }, 500); };
-  return <div className="login-screen"><div className="login-aside"><div className="admin-brand large"><span>TX</span><div><strong>MYSELF</strong><small>CONTENT STUDIO</small></div></div><div className="login-quote"><p>记录代码、项目和持续构建中的想法。</p><span>一个给自己的内容工作台。</span></div><div className="login-aside-foot"><span>PRIVATE WORKSPACE</span><span>V 1.0 / 2026</span></div></div><main className="login-card"><div className="login-card-head"><p className="overline">WELCOME BACK</p><h1>登录工作台</h1><p>继续编辑你的下一篇文章。</p></div><form onSubmit={submit} className="login-form" noValidate><label>邮箱<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" /></label><label>密码<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" /></label>{error && <div className="form-error"><CircleAlert size={15} />{error}</div>}<button className="primary wide" disabled={loading}>{loading ? <><Activity size={15} className="spin" />正在验证...</> : <>进入工作台 <ArrowUpRight size={15} /></>}</button></form><div className="demo-hint"><span>演示账号</span><code>tongxuan@example.com</code><code>123456</code></div></main></div>;
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); setError(""); if (!email.trim() || !password.trim()) { setError("请输入邮箱和密码。"); return; } setLoading(true); try { await loginRemote(email, password); localStorage.setItem("myself-admin-session", "active"); onSuccess(); navigate("dashboard"); } catch (caught) { setError(caught instanceof Error ? caught.message : "账号或密码不正确"); } finally { setLoading(false); } };
+  return <div className="login-screen"><div className="login-aside"><div className="admin-brand large"><span>TX</span><div><strong>MYSELF</strong><small>CONTENT STUDIO</small></div></div><div className="login-quote"><p>记录代码、项目和持续构建中的想法。</p><span>一个给自己的内容工作台。</span></div><div className="login-aside-foot"><span>PRIVATE WORKSPACE</span><span>V 1.0 / 2026</span></div></div><main className="login-card"><div className="login-card-head"><p className="overline">WELCOME BACK</p><h1>登录工作台</h1><p>继续编辑你的下一篇文章。</p></div><form onSubmit={submit} className="login-form" noValidate><label>邮箱<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" /></label><label>密码<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" /></label>{error && <div className="form-error"><CircleAlert size={15} />{error}</div>}<button className="primary wide" disabled={loading}>{loading ? <><Activity size={15} className="spin" />正在验证...</> : <>进入工作台 <ArrowUpRight size={15} /></>}</button></form></main></div>;
 }
 
 function Sidebar({ route, open, counts, onClose, onLogout }: { route: Route; open: boolean; counts: Partial<Record<Route, number>>; onClose: () => void; onLogout: () => void }) {
@@ -149,7 +150,7 @@ function Toast({ message, visible, tone = "success" }: { message: string; visibl
 
 function App() {
   const route = useRoute();
-  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem("myself-admin-session") === "active");
+  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem("myself-admin-session") === "active" && Boolean(localStorage.getItem("myself-admin-token")));
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [workspaceCollections, setWorkspaceCollections] = useState<Collection[]>(collections);
   const [workspaceProjects, setWorkspaceProjects] = useState<Project[]>(projects);
@@ -282,7 +283,7 @@ function App() {
     flash(apiConnected ? "记录及公开快照已删除" : "Mock 记录已删除");
     return true;
   };
-  const logout = () => { localStorage.removeItem("myself-admin-session"); setAuthenticated(false); navigate("login"); };
+  const logout = () => { localStorage.removeItem("myself-admin-session"); localStorage.removeItem("myself-admin-token"); setAuthenticated(false); navigate("login"); };
   if (!authenticated || route === "login") return <LoginScreen onSuccess={() => setAuthenticated(true)} />;
   const page = route === "dashboard" ? <DashboardPage articles={articles} workspaceCollections={workspaceCollections} workspaceProjects={workspaceProjects} onCreate={createArticle} onOpenArticle={(id) => { setSelectedId(id); navigate("articles"); }} /> : route === "articles" ? <ArticlesPage articles={articles} selectedId={selectedId} onSelect={setSelectedId} onCreate={createArticle} onUpdate={updateSelected} onSave={saveDraft} onPublish={publishSelected} onDelete={deleteSelected} /> : route === "collections" ? <CollectionsPage items={workspaceCollections} onSave={saveCollection} onDelete={removeCollection} /> : route === "projects" ? <ProjectsPage items={workspaceProjects} onSave={saveProject} onDelete={removeProject} /> : route === "notes" ? <NotesPage items={workspaceNotes} onSave={saveNote} onDelete={removeNote} /> : <SettingsPage dark={dark} onToggleDark={() => setDark((value) => !value)} onToast={flash} />;
   return <div className={`admin-app ${dark ? "is-dark" : ""}`}><Sidebar route={route} open={menuOpen} counts={{ articles: articles.length, collections: workspaceCollections.length, projects: workspaceProjects.length, notes: workspaceNotes.length }} onClose={() => setMenuOpen(false)} onLogout={logout} /><main className="admin-main"><Topbar route={route} apiConnected={apiConnected} onOpenMenu={() => setMenuOpen(true)} onToast={flash} />{loading ? <div className="page-loading"><Activity className="spin" size={20} /><span>{apiConnected ? "正在加载 API 数据..." : "正在加载 Mock 数据..."}</span></div> : page}</main><Toast message={toast.message} visible={toast.visible} tone={toast.tone} /></div>;

@@ -30,6 +30,9 @@ class PublishingTests(unittest.TestCase):
         self.content_patch.start()
         self.client_context = TestClient(app)
         self.client = self.client_context.__enter__()
+        login = self.client.post("/api/auth/login", json={"email": "admin@example.com", "password": "change-me-before-production"})
+        self.assertEqual(login.status_code, 200, login.text)
+        self.client.headers.update({"Authorization": f"Bearer {login.json()['access_token']}"})
         with closing(store.connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
             for table in ("articles", "collections", "projects", "notes"):
@@ -44,6 +47,16 @@ class PublishingTests(unittest.TestCase):
 
     def snapshot(self):
         return json.loads((self.content / "snapshot.json").read_text(encoding="utf-8"))
+
+    def test_authentication_required_and_login_issues_session(self):
+        unauthenticated = TestClient(app)
+        response = unauthenticated.get("/api/articles")
+        self.assertEqual(response.status_code, 401)
+        bad_login = unauthenticated.post("/api/auth/login", json={"email": "admin@example.com", "password": "wrong"})
+        self.assertEqual(bad_login.status_code, 401)
+        good_login = unauthenticated.post("/api/auth/login", json={"email": "admin@example.com", "password": "change-me-before-production"})
+        self.assertEqual(good_login.status_code, 200)
+        self.assertIn("access_token", good_login.json())
 
     def create(self, **overrides):
         response = self.client.post("/api/articles", json={

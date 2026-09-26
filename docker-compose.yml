@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file: .env.production
+    environment:
+      MYSELF_DATABASE_PATH: /data/articles.db
+      MYSELF_CONTENT_DIR: /content
+    volumes:
+      - myself_database:/data
+      - myself_content:/content
+    expose:
+      - "8000"
+    restart: unless-stopped
+  site-builder:
+    build:
+      context: .
+      dockerfile: apps/site/Dockerfile.builder
+    environment:
+      MYSELF_CONTENT_DIR: /app/apps/site/src/content/published
+    volumes:
+      - myself_content:/app/apps/site/src/content/published
+      - myself_site_dist:/app/apps/site/dist
+    depends_on:
+      - api
+    restart: unless-stopped
+  admin-builder:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile.builder
+    volumes:
+      - myself_admin_dist:/out
+    restart: "no"
+  web:
+    build:
+      context: ./deploy
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - myself_site_dist:/usr/share/nginx/html:ro
+      - myself_admin_dist:/usr/share/nginx/admin:ro
+    depends_on:
+      - api
+      - site-builder
+      - admin-builder
+    restart: unless-stopped
+volumes:
+  myself_database:
+  myself_content:
+  myself_site_dist:
+  myself_admin_dist:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..models import (
     Collection,
@@ -28,10 +28,11 @@ from ..store import (
     update_note,
     update_project,
 )
+from ..auth import require_auth
 
-collections_router = APIRouter(prefix="/api/collections", tags=["collections"])
-projects_router = APIRouter(prefix="/api/projects", tags=["projects"])
-notes_router = APIRouter(prefix="/api/notes", tags=["notes"])
+collections_router = APIRouter(prefix="/api/collections", tags=["collections"], dependencies=[Depends(require_auth)])
+projects_router = APIRouter(prefix="/api/projects", tags=["projects"], dependencies=[Depends(require_auth)])
+notes_router = APIRouter(prefix="/api/notes", tags=["notes"], dependencies=[Depends(require_auth)])
 
 
 @collections_router.get("", response_model=list[Collection])

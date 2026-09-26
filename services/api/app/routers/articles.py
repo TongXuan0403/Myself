@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..models import Article, ArticleCreate, ArticleStatusUpdate, ArticleUpdate, Status
 from ..store import (
@@ -10,8 +10,9 @@ from ..store import (
     set_article_status,
     update_article,
 )
+from ..auth import require_auth
 
-router = APIRouter(prefix="/api/articles", tags=["articles"])
+router = APIRouter(prefix="/api/articles", tags=["articles"], dependencies=[Depends(require_auth)])
 
 
 @router.get("", response_model=list[Article])
