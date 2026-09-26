@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="../">
+  <link rel="stylesheet" href="frame/asu/base.css">
+  <title>王鑫恩 - Agent / 大模型应用开发</title>
+  <style>
+    .profile-photo-slot { display: none !important; }
+    .header-grid { display: block; }
+    .meta-row { white-space: normal; }
+    body { font-size: 9.8pt; line-height: 1.25; }
+    h1 { font-size: 22pt; }
+    .summary { margin: 3px 0 5px; color: #243b67; font-size: 10pt; line-height: 1.28; }
+    .tagline { color: #2458b8; font-weight: 700; }
+    .source-note { color: #596273; font-size: 8.5pt; }
+    .section { margin-top: 5px; }
+    .section-title { font-size: 17pt; margin-bottom: 3px; }
+    .company { min-height: 27px; margin: 3px 0 2px; padding: 3px 7px; }
+    .company-name { font-size: 10.6pt; }
+    .company-meta { font-size: 9pt; }
+    .project { margin-top: 1px; margin-bottom: 2px; }
+    .project-title { margin-top: 1px; font-size: 10.8pt; }
+    ul { margin-top: 0; margin-bottom: 1px; }
+    li { margin: 0; }
+    .source-note { font-size: 8.2pt; }
+  </style>
+</head>
+<body data-page-mode="paged">
+  <!-- @ASU_TOOLBAR -->
+  <main class="sheet" contenteditable="true">
+    <header class="header-grid">
+      <div>
+        <h1>王鑫恩</h1>
+        <div class="meta-row"><strong>19021266428</strong><span class="separator">|</span><strong>tongxuan0403@gmail.com</strong></div>
+        <div class="meta-row"><strong>男 · 23 岁 · 2027 届本科 · 目标岗位：Agent 开发 / 大模型应用开发</strong></div>
+        <div class="meta-row"><strong>github.com/TongXuan0403 · 开源贡献：Dify PR #42602（已合并）</strong></div>
+        <p class="summary"><span class="tagline">Python / LLM 应用 / Agent 工程</span>：具备 RAG 私有化部署、工具调用、语音交互和 AI Coding 工作流经验，能从需求拆解、模型接入、服务开发到 Docker 部署完成可运行交付；重视可观测、可复现和边界清晰的工程实现。</p>
+      </div>
+    </header>
+
+    <section class="section">
+      <h2 class="section-title">教育经历</h2>
+      <div class="company">
+        <div class="company-name education-name">西安科技大学高新学院<span class="education-major">· 计算机科学与技术 · 本科</span></div>
+        <div class="company-meta">2025.09 - 2027.07</div>
+      </div>
+      <div class="source-note">相关课程：数据结构与算法、操作系统、计算机网络、数据库原理、软件工程、Python / Java / C 程序设计、人工智能基础、软件测试</div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">开源贡献</h2>
+      <div class="company">
+        <div class="company-name">Dify（langgenius/dify，开源 LLM 应用开发平台）</div>
+        <div class="company-meta">PR #42602 · 已合并</div>
+      </div>
+      <article class="project">
+        <div class="project-title">后端数据库会话显式化重构　|　Issue #37403</div>
+        <ul>
+          <li><strong>问题定位：</strong>在 <span class="code">ApiToolManageService</span> 的创建 / 更新流程中，识别控制器隐式获取全局 <span class="code">db.session()</span> 导致控制器、模型加载关联与外层写操作不处于同一 Session / 事务的问题。</li>
+          <li><strong>个人交付：</strong>将隐式会话替换为当前事务上下文的显式 <span class="code">_session</span>，完成代码定位、issue timeline 与 open PR 排查、最小改动、ruff lint / format 校验，并按 CONTRIBUTING 完成 fork → 分支 → PR → CI 闭环。</li>
+          <li><strong>验证结果：</strong>通过 API 测试、Pyrefly 类型检查和风格检查，PR 已合并 main；能够围绕事务一致性、改动边界和 CI 失败定位进行技术说明。</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">项目经历</h2>
+      <div class="company">
+        <div class="company-name">基于 RAG 的私有化智能问答系统 · 个人独立项目</div>
+        <div class="company-meta">2026.03 - 2026.05</div>
+      </div>
+      <article class="project">
+        <div class="project-title">私有化知识库问答　|　RAG 全链路与 Ollama 本地大模型部署</div>
+        <ul>
+          <li><strong>目标：</strong>面向无外网 / 数据敏感场景搭建可独立运行的知识库问答系统，打通文档导入、解析、切分、Embedding、语义检索、Prompt 组装和回答生成链路。</li>
+          <li><strong>实现：</strong>基于 MaxKB 完成 40 余份 PDF / Word 文档解析、分类与标签设计；使用 Ollama 部署本地 7B 模型，通过 1Panel + Docker 完成服务编排、数据持久化和推理配置。</li>
+          <li><strong>结果：</strong>知识库问答召回准确率约 75%，单请求平均响应 2-3 秒；全流程不依赖外部大模型 API，具备模型替换、数据隔离和部署排障的实践经验。</li>
+        </ul>
+      </article>
+
+      <div class="company">
+        <div class="company-name">网页智能语音助手及硬件联动 · 个人独立项目</div>
+        <div class="company-meta">2025.11 - 2026.01</div>
+      </div>
+      <article class="project">
+        <div class="project-title">语音对话助手 + ESP32 硬件控制　|　ASR / TTS、火山引擎模型 API、串口协议</div>
+        <ul>
+          <li><strong>目标：</strong>实现可语音交互并直接控制硬件的网页助手，验证 LLM API 从自然语言输入到真实设备动作的完整落地链路。</li>
+          <li><strong>实现：</strong>集成 ASR / TTS 与火山大模型 API，设计串口通信协议，将模型输出解析为硬件控制指令；完成 Web 前端、后端 API 和 Docker 云服务器部署。</li>
+          <li><strong>结果：</strong>日常中文语音识别准确率约 90%，单轮响应时延约 1.5 秒；支持 6 类硬件控制指令，执行成功率约 92%，覆盖工具调用、协议校验和异常反馈。</li>
+        </ul>
+      </article>
+
+      <div class="company">
+        <div class="company-name">AI 辅助开发 OA 审批流转系统 · 课程实训 / 核心开发</div>
+        <div class="company-meta">2026.05 - 2026.07</div>
+      </div>
+      <article class="project">
+        <div class="project-title">AI Coding 工作流实践　|　前后端分离、审批状态机与权限边界</div>
+        <ul>
+          <li><strong>个人工作：</strong>编写需求规格、接口定义和数据模型，驱动 Claude 生成数据库 DDL 与前后端代码骨架，人工完成代码校验、业务逻辑修复和边界处理。</li>
+          <li><strong>落地结果：</strong>实现 3 级审批流转、2 类核心单据、权限区分与操作留痕；Gitee 累计 13 次有效提交，AI 辅助节省约 40% 基础开发时间。</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">技术能力</h2>
+      <div><strong>编程与后端：</strong>熟练 Python；掌握 C 嵌入式开发基础，了解 Java、JavaScript / HTML / CSS；具备 FastAPI、SQLAlchemy、MySQL、Linux / Shell、Docker、Git、1Panel 云服务器部署经验。</div>
+      <div><strong>Agent / LLM：</strong>掌握 RAG 全链路（文档解析 → 切分 → Embedding → 语义检索 → Prompt 优化）；使用 Ollama、MaxKB 完成本地模型与知识库部署；熟悉 Dify、Coze 搭建 AI 工作流与 Agent，了解工具调用、结构化输出、Multi-Agent 与 MCP 协议。</div>
+      <div><strong>工程与质量：</strong>理解会话 / 事务边界、接口设计、权限控制、串口协议、Docker 编排与故障排查；具备 API 测试、Pyrefly、ruff、Prompt 评测和 AI Coding 人工复核经验。</div>
+    </section>
+  </main>
+  <!-- @ASU_EDITOR -->
+</body>
+</html>

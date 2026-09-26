@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "profile": {
+    "candidate_id": "wang-xinen",
+    "target_roles": ["Agent 开发", "大模型应用开发"],
+    "updated_at": "2026-09-26"
+  },
+  "source_materials": [
+    {
+      "type": "user_provided_pdf",
+      "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf",
+      "status": "已读取",
+      "public": false
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-profile-001",
+      "source_fact": "王鑫恩，西安科技大学高新学院计算机科学与技术本科，2025.09-2027.07，目标岗位为大模型应用开发 / Agent 应用开发。",
+      "candidate_wording": "2027 届本科，目标岗位：Agent 开发 / 大模型应用开发。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}],
+      "responsibility_level": "参与",
+      "verification_status": "已确认",
+      "allowed_uses": ["Agent 岗位简历", "大模型应用开发简历", "HR 开场白"],
+      "interview_details": {"decisions": ["将 Agent / 大模型应用开发作为主投方向"], "difficulties": ["项目经验以个人项目和课程项目为主"], "verification": ["核对学校与在读时间"], "result": "形成一页版目标岗位简历"},
+      "boundary": "教育与目标岗位信息，不代表正式工作经历。",
+      "risk_notes": [],
+      "last_verified": "2026-09-26"
+    },
+    {
+      "id": "claim-dify-001",
+      "source_fact": "Dify langgenius/dify PR #42602 已合并，参与 ApiToolManageService 数据库会话显式化重构，对应 Issue #37403。",
+      "candidate_wording": "识别并修复隐式 db.session() 引起的会话 / 事务边界问题，使用当前事务上下文的显式 _session 完成最小改动并通过 CI。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}, {"type": "pull_request", "location": "https://github.com/langgenius/dify/pull/42602", "public": true}],
+      "responsibility_level": "负责模块",
+      "verification_status": "已确认",
+      "allowed_uses": ["开源贡献", "后端 / Agent 工程简历", "技术面试"],
+      "interview_details": {"decisions": ["使用当前事务上下文的显式 _session"], "difficulties": ["定位隐式 session 与外层写操作的边界问题"], "verification": ["API 测试、Pyrefly、ruff 和 CI"], "result": "PR #42602 已合并 main"},
+      "boundary": "只归因于本人实际修改、验证和提交流程，不把 Dify 平台整体成果归为个人成果。",
+      "risk_notes": ["面试前准备 PR diff 与 CI 记录，确保能逐行解释修改。"],
+      "last_verified": "2026-09-26"
+    },
+    {
+      "id": "claim-rag-001",
+      "source_fact": "2026.03-2026.05 独立搭建基于 RAG 的私有化智能问答系统，使用 MaxKB、Ollama、1Panel、Docker，导入 40 余份 PDF / Word，使用本地 7B 模型，召回准确率约 75%，平均响应 2-3 秒，不依赖外部大模型 API。",
+      "candidate_wording": "完成私有化知识库问答全链路和本地模型部署，覆盖解析、切分、Embedding、检索、Prompt 与生成。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}],
+      "responsibility_level": "项目负责人",
+      "verification_status": "已确认",
+      "allowed_uses": ["Agent / RAG 岗位简历", "项目面试", "作品集说明"],
+      "interview_details": {"decisions": ["采用本地 7B 模型与私有化部署"], "difficulties": ["切分、召回与推理时延的平衡"], "verification": ["准备评测问题集并解释 75% 口径", "复现 2-3 秒响应测试"], "result": "完成无外部模型 API 依赖的 RAG 闭环"},
+      "boundary": "个人独立项目，指标为原简历自报数据；面试中应说明样本集和评估方法。",
+      "risk_notes": ["如果被追问准确率，需要准备评测问题集、命中定义和统计方式。"],
+      "last_verified": "2026-09-26"
+    },
+    {
+      "id": "claim-voice-001",
+      "source_fact": "2025.11-2026.01 独立完成网页智能语音助手及 ESP32 硬件联动，集成 ASR / TTS、火山大模型 API、串口协议、Web 前后端与 Docker 部署；识别约 90%，响应约 1.5 秒，6 类指令，执行成功率约 92%。",
+      "candidate_wording": "将模型输出解析为可校验的硬件控制指令，形成 ASR / LLM / TTS / 串口协议闭环。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}],
+      "responsibility_level": "项目负责人",
+      "verification_status": "已确认",
+      "allowed_uses": ["Agent 应用开发简历", "端到端系统面试"],
+      "interview_details": {"decisions": ["将模型输出解析为结构化硬件控制指令"], "difficulties": ["处理语音链路时延与串口协议异常"], "verification": ["演示 6 类指令", "解释 1.5 秒时延与 92% 成功率的统计口径"], "result": "形成 ASR / LLM / TTS / 串口闭环"},
+      "boundary": "个人独立项目，硬件与模型服务的具体型号和成本未在原材料中确认。",
+      "risk_notes": ["面试前准备一次完整链路演示或时序图。"],
+      "last_verified": "2026-09-26"
+    },
+    {
+      "id": "claim-oa-001",
+      "source_fact": "2026.05-2026.07 课程实训中参与 AI 辅助开发 OA 审批流转系统，负责编写规范与接口定义、驱动 Claude 生成 DDL 和代码骨架、人工校验修复；实现 3 级审批、2 类单据、权限和操作留痕，Gitee 13 次有效提交，节省约 40% 基础开发时间。",
+      "candidate_wording": "用 AI Coding 工作流完成审批状态机、权限边界和操作留痕，并保留人工复核环节。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}],
+      "responsibility_level": "负责模块",
+      "verification_status": "已确认",
+      "allowed_uses": ["工程化项目经历", "AI Coding 话题面试"],
+      "interview_details": {"decisions": ["先写需求规格、接口定义与数据模型，再让模型生成骨架"], "difficulties": ["人工复核 AI 生成代码的业务逻辑与边界"], "verification": ["检查审批状态机、权限与操作留痕", "核对 Gitee 提交记录"], "result": "完成课程实训的核心开发并估算基础开发节省约 40% 时间"},
+      "boundary": "课程实训核心开发，不表述为商业系统上线。",
+      "risk_notes": ["说明 40% 是基础开发阶段估算，不等同于整体交付效率提升。"],
+      "last_verified": "2026-09-26"
+    },
+    {
+      "id": "claim-skills-001",
+      "source_fact": "具备 Python、C 基础、Java / JavaScript / HTML / CSS 了解，RAG、Ollama、MaxKB、Dify、Coze、FastAPI、SQLAlchemy、MySQL、Docker、Linux、Git、LangChain / LangGraph、HuggingFace / NLP 等学习或实践经历。",
+      "candidate_wording": "Python / FastAPI / Docker 为主线，具备 RAG、工具调用、Prompt、模型部署、API 测试和工程质量实践。",
+      "sources": [{"type": "document", "location": "C:/Users/KShui/Desktop/王鑫恩-大模型应用开发-简历.pdf#page=1", "public": false}],
+      "responsibility_level": "参与",
+      "verification_status": "已确认",
+      "allowed_uses": ["技能栏", "岗位匹配分析"],
+      "interview_details": {"decisions": ["技能栏按实践主线和了解范围分层"], "difficulties": ["避免将自学技术包装成生产经验"], "verification": ["通过项目代码、PR 和部署记录逐项核对"], "result": "形成与目标岗位相关的技能表述"},
+      "boundary": "技能栏不等同于每项技术都有生产级项目经验。",
+      "risk_notes": ["投递不同 JD 时按真实熟练度调整关键词，避免泛化堆栈。"],
+      "last_verified": "2026-09-26"
+    }
+  ]
+}
