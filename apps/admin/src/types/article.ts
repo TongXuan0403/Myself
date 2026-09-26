@@ -2,6 +2,7 @@ export type ArticleStatus = "已发布" | "草稿";
 
 export interface Article {
   id: number;
+  slug?: string;
   title: string;
   category: string;
   status: ArticleStatus;

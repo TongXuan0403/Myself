@@ -1,0 +1,9 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { projects } from "../../data/content";
+export function getStaticPaths() { return projects.map((project) => ({ params: { slug: project.slug }, props: { project } })); }
+const { project } = Astro.props;
+---
+<BaseLayout title={`${project.name} / TX Field Notes`} description={project.summary}>
+  <div class="site-page"><a class="site-kicker" href="/projects/">项目 / 实验室</a><h1>{project.name}。</h1><p class="hero-description">{project.summary}</p><div class="band"><div class="about-grid"><div><span class="project-status">{project.status}</span><div class="about-mark">TX</div></div><div class="about-copy"><h2>实现结果</h2><p>{project.result}</p><div class="about-list"><div><span>TECH STACK</span><strong>{project.stack.join(" · ")}</strong></div><div><span>REPOSITORY</span><strong>github.com/TongXuan0403/{project.slug}</strong></div></div></div></div></div></div>
+</BaseLayout>

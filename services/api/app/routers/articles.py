@@ -24,18 +24,18 @@ def get_articles(
     return list_articles(status=status, query=q, limit=limit, offset=offset)
 
 
-@router.get("/{article_id}", response_model=Article)
-def get_article(article_id: int) -> Article:
-    try:
-        return fetch_article(article_id)
-    except LookupError as error:
-        raise HTTPException(status_code=404, detail="Article not found") from error
-
-
 @router.get("/slug/{slug}", response_model=Article)
 def get_article_by_slug(slug: str) -> Article:
     try:
         return fetch_article_by_slug(slug.strip().lower())
+    except LookupError as error:
+        raise HTTPException(status_code=404, detail="Article not found") from error
+
+
+@router.get("/{article_id}", response_model=Article)
+def get_article(article_id: int) -> Article:
+    try:
+        return fetch_article(article_id)
     except LookupError as error:
         raise HTTPException(status_code=404, detail="Article not found") from error
 

@@ -1,0 +1,7 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { notes } from "../../data/content";
+---
+<BaseLayout title="记录 / TX Field Notes" description="学习、开发与问题解决的时间线。">
+  <div class="site-page"><p class="site-kicker">FIELD NOTES / 04</p><h1>记录。</h1><p class="hero-description">不要求每条内容都成为完整文章，但让每个阶段都留下一点可回看的证据。</p><div class="timeline">{notes.map((note) => <article class="timeline-row"><time>{note.date}</time><div><span class="site-kicker">{note.type}</span><h3>{note.title}</h3><p>{note.summary}</p><div class="tag-list">{note.tags.map((tag) => <span>{tag}</span>)}</div></div></article>)}</div></div>
+</BaseLayout>

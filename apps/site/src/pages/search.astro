@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { articles } from "../data/content";
+---
+<BaseLayout title="搜索 / TX Field Notes" description="搜索文章、专题和项目。">
+  <div class="site-page search-page"><p class="site-kicker">SEARCH / 06</p><h1>找到下一篇。</h1><form class="search-form" id="search-form"><input id="search-input" name="q" placeholder="输入关键词，例如 Astro、部署" aria-label="搜索关键词" /><button class="button-link" type="submit">搜索 ↗</button></form><div class="search-results" id="search-results">{articles.map((article) => <a class="search-result" href={`/articles/${article.slug}/`} data-search={`${article.title}${article.description}${article.tags.join("")}`}><span class="meta">{article.category} · {article.date}</span><h3>{article.title}</h3><p>{article.description}</p></a>)}</div><div class="empty-state" id="search-empty" hidden><strong>没有找到相关内容</strong><p>换一个关键词试试。</p></div></div>
+</BaseLayout>
+<script>
+  const form = document.querySelector('#search-form'); const input = document.querySelector('#search-input'); const results = [...document.querySelectorAll('.search-result')]; const empty = document.querySelector('#search-empty');
+  const run = (event?: Event) => { event?.preventDefault(); const q = (input as HTMLInputElement).value.toLowerCase(); let count = 0; results.forEach((item) => { const match = (item.getAttribute('data-search') || '').toLowerCase().includes(q); (item as HTMLElement).style.display = match ? 'block' : 'none'; if (match) count += 1; }); (empty as HTMLElement).hidden = count > 0; };
+  form?.addEventListener('submit', run); input?.addEventListener('input', run);
+</script>
