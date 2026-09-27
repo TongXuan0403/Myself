@@ -13,7 +13,9 @@ from pathlib import Path
 CONTENT_DIRECTORY = Path(
     os.environ.get(
         "MYSELF_CONTENT_DIR",
-        str(Path(__file__).resolve().parents[3] / "apps/site/src/content/published"),
+        str(Path(__file__).resolve().parents[3] / "apps/site/src/content/published")
+        if len(Path(__file__).resolve().parents) > 3
+        else "/content",
     )
 ).resolve()
 MANAGED_ARTICLE = re.compile(r"article-\d+-[0-9a-f]{16}\.md")
