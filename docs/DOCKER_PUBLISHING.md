@@ -9,6 +9,8 @@
 - `admin-builder`：构建 React 管理后台静态文件。
 - `web`：Nginx 提供博客和后台，并把 `/api/` 代理给 API。
 
+当前服务器已切换到该 Compose 编排：博客地址为 `http://47.109.193.62/`，后台地址为 `http://47.109.193.62/admin/`，API 健康检查为 `/api/health`。服务器仍使用 HTTP，未配置 TLS。
+
 SQLite、公开内容、站点构建产物和后台构建产物都使用 Docker named volume，不依赖容器临时文件。API 的修改接口和读取接口都需要 Bearer 会话；只有健康检查和登录接口公开。
 
 ## 服务器首次配置

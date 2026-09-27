@@ -25,7 +25,7 @@
 | Git commit 自动发布 | 未开始 | 尚未实现发布后的自动提交和推送 |
 | 自动构建与部署 | 未开始 | 尚未配置 GitHub Actions 和生产部署 |
 | 公开站点服务器 | 已部署 | Astro 静态站点运行于 `http://47.109.193.62/`，Ubuntu + Nginx；当前 HTTP，尚未绑定域名/TLS |
-| Docker 一键发布 | 已完成首版 | Compose 编排 API、自动构建器、后台和 Nginx；管理员登录使用 Bearer 会话，发布后自动重建站点 |
+| Docker 一键发布 | 已部署并验证 | 服务器已运行 API、自动构建器、后台和 Nginx；后台地址为 `http://47.109.193.62/admin/`，管理员登录使用 Bearer 会话，发布后自动重建站点 |
 | 搜索、RSS、SEO | 规划中 | 已写入需求，尚未接入正式站点 |
 
 ## 3. 已完成内容
@@ -121,8 +121,8 @@ services/api/__pycache__/     # Python 缓存
 
 ## 6. 下一步实施顺序
 
-1. 将 Docker Compose 编排部署到服务器并验证持久化卷、登录和一键发布。
-2. 为站点绑定域名并启用 HTTPS，按新域名更新 canonical 配置。
+1. 为服务器绑定域名并启用 HTTPS，随后验证正式域名下的登录和一键发布。
+2. 按新域名更新 canonical 配置。
 3. 配置 GitHub Actions，完成构建、部署和失败回滚；改用受限 SSH key/CI secret。
 4. 接入搜索、RSS、sitemap、Open Graph 和基础 SEO。
 5. 使用真实文章完成桌面端、移动端和发布流程验收。
@@ -133,7 +133,7 @@ services/api/__pycache__/     # Python 缓存
 - SQLite 适合第一代单作者场景，后续需根据内容量和访问量评估迁移方案。
 - 自动发布涉及 GitHub Token、构建权限和部署凭据，必须只保存在服务端或 CI 环境。
 - 公开站点已经可从 API 生成的 Markdown 构建，但没有自动 Git 发布和 CI 部署；不能宣称“点击发布即可上线”。本地生成目录和数据库不纳入 Git，部署时须传递快照与其引用的 Markdown。
-- 服务器目前通过裸 IP 提供 HTTP；浏览器到站点的流量尚无 TLS 加密。Docker Compose 编排尚未切换到服务器生产运行模式。
+- 服务器目前通过裸 IP 提供 HTTP；浏览器到站点的流量尚无 TLS 加密。Docker Compose 已切换到服务器生产运行模式，仍需绑定域名并配置 TLS。
 
 ## 8. 相关文档
 

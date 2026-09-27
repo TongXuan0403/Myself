@@ -9,7 +9,7 @@
 - 已完成静态 UI Demo：见 [demo/index.html](demo/index.html)、[demo/styles.css](demo/styles.css) 和 [demo/script.js](demo/script.js)
 - 已加入首页动态效果：首屏视差、滚动进度、数字增长、滚动文字带和卡片悬停反馈
 - 当前阶段：文章、专题、项目和记录已接入 FastAPI + SQLite；后台四类内容均可新建、编辑和删除，公开数据从同一快照构建
-- 公开站点已部署至 `http://47.109.193.62/`，当前提供 HTTP 访问；HTTPS 需绑定域名并配置 TLS
+- 公开站点已部署至 `http://47.109.193.62/`，后台入口为 `http://47.109.193.62/admin/`；当前提供 HTTP 访问，HTTPS 需绑定域名并配置 TLS
 - 已加入 Docker Compose 生产编排：API、后台静态资源、自动构建器和 Nginx 可由一条命令启动
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
@@ -47,8 +47,8 @@
 18. 增加后台 API 客户端：启动时优先读取 FastAPI 文章数据，文章新建、保存、发布和删除调用 SQLite API；API 不可用时自动保留 Mock 数据体验，并修正 slug 详情路由顺序。
 19. 修正发布动作：点击发布时先同步当前编辑内容，再切换 API 文章状态，避免未保存修改丢失。
 20. 扩展 FastAPI 内容模型和 SQLite 持久化：新增专题、项目、记录三类表、种子数据及列表、详情、新建、更新、删除接口；后台登录后优先读取这些 API 数据，并在接口不可用时回退 Mock 数据。
-21. 将发布内容同步到 `apps/site/src/content/published/`：文章生成带 Front Matter 的 Markdown，专题、项目和记录写入版本化 JSON 快照；Astro 内容集合渲染文章正文，首页、列表、搜索及详情共享公开数据。草稿、撤回和删除不进入下次构建；发布仍需手动构建部署，Git 自动发布尚未实现。详见 [内容发布说明](docs/CONTENT_PUBLISHING.md)。
-22. 将 Astro 静态站点部署到 Ubuntu + Nginx 服务器 `47.109.193.62`，使用带时间戳的 release 目录和 `current` 软链接切换，保留 Nginx 默认站点配置备份；API 与后台没有部署到公网。详见 [服务器部署说明](docs/DEPLOYMENT.md)。
+21. 将发布内容同步到 `apps/site/src/content/published/`：文章生成带 Front Matter 的 Markdown，专题、项目和记录写入版本化 JSON 快照；Astro 内容集合渲染文章正文，首页、列表、搜索及详情共享公开数据。发布后由 Docker 自动构建站点。详见 [内容发布说明](docs/CONTENT_PUBLISHING.md)。
+22. 将 Docker Compose 生产编排部署到 Ubuntu 服务器 `47.109.193.62`，Nginx 同时提供博客、后台和 API 代理；后台入口为 `http://47.109.193.62/admin/`。详见 [Docker 发布说明](docs/DOCKER_PUBLISHING.md)。
 23. 增加 Docker Compose 生产编排和管理员登录：API 使用 Bearer 会话保护，后台登录调用真实 API；内容变化后构建器自动重建 Astro，Nginx 同时提供博客、后台和 API 代理。详见 [Docker 发布说明](docs/DOCKER_PUBLISHING.md)。
 23. 补齐专题、项目和记录的后台编辑器：支持字段校验、新建、修改和二次确认删除，在线时调用 FastAPI CRUD 并刷新公开快照，离线时保留会话内 Mock 操作；同时修复后台入口遗漏样式文件导致的无样式渲染。
 
