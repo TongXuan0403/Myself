@@ -54,7 +54,7 @@
 
 ## 求职材料
 
-已在 `jl/resume` 生成面向 Agent / 大模型应用开发岗位的一页式可编辑简历与 PDF，并在 `docs/RESUME_AGENT_REBUILD.md` 记录重构目标、事实边界、实现过程和投递前补强项。简历内容基于用户提供的原始 PDF 重组，重点突出 Dify 开源贡献、RAG 私有化部署、语音工具调用闭环和 AI Coding 工程实践；`claim-evidence-ledger.json` 用于追踪每条项目主张的证据与面试边界。
+已在 `resume` 生成面向 Agent / 大模型应用开发岗位的 ASu 同款可编辑简历与 PDF，并在 `docs/RESUME_ASU_REBUILD.md` 记录模板、内容策略、文件结构和 QA 结果。简历基于用户提供的原始 PDF 重组，重点突出 Dify 开源贡献、RAG 私有化部署、语音工具调用闭环和 AI Coding 工程实践。
 
 Demo 直接打开 [demo/index.html](demo/index.html) 即可查看，也可以在项目目录运行 `python -m http.server 4173`，然后访问 `http://localhost:4173/demo/`。
 
