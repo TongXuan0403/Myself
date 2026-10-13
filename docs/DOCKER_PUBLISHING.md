@@ -9,6 +9,8 @@
 - `admin-builder`：构建 React 管理后台静态文件。
 - `web`：Nginx 提供博客和后台，并把 `/api/` 代理给 API。
 
+后台 Vite 构建基址为 `/admin/`，脚本、样式和 favicon 均从该路径加载。网关为内容和登录接口保留 `/api/` 前缀，健康检查 `/api/health` 单独代理到后端 `/health`。
+
 当前服务器已切换到该 Compose 编排：博客地址为 `http://47.109.193.62/`，后台地址为 `http://47.109.193.62/admin/`，API 健康检查为 `/api/health`。服务器仍使用 HTTP，未配置 TLS。
 
 SQLite、公开内容、站点构建产物和后台构建产物都使用 Docker named volume，不依赖容器临时文件。API 的修改接口和读取接口都需要 Bearer 会话；只有健康检查和登录接口公开。
@@ -33,10 +35,9 @@ docker compose up -d --build
 docker compose logs -f api site-builder web
 ```
 
-更新代码或部署新版本：
+更新代码或部署新版本前，先获取或上传目标版本源码，保留 `.env.production` 和数据卷；若目录是 Git checkout，可先执行 `git pull`。当前服务器 `/opt/myself` 是上传的源码副本，没有 `.git`，具体恢复和更新说明见 [服务器部署说明](DEPLOYMENT.md)。源码准备完成后执行：
 
 ```bash
-git pull
 docker compose up -d --build
 ```
 
