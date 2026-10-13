@@ -11,6 +11,8 @@
 
 当前服务器通过 Nginx 同源提供博客、后台和 API：博客为 `http://47.109.193.62/`，后台为 `http://47.109.193.62/admin/`，API 健康检查为 `http://47.109.193.62/api/health`。Nginx 会保留 `/api/...` 前缀转发给 FastAPI，登录和内容接口因此与前端 API 客户端保持一致。当前使用 IP + HTTP，未配置 TLS；正式上线前应绑定域名、配置 HTTPS，并相应调整 `apps/site/astro.config.mjs` 中的 `site`。
 
+2026-10-13 域名检查：`www.tongxuan.me` 在阿里云权威 DNS 中已正确指向本机，但注册商将 `tongxuan.me` 设为 `clientHold`，公网 DNS 返回 NXDOMAIN。强制域名指向 IP 后，首页、后台和健康检查均正常；需在域名账户中解除锁定，再接入 HTTPS，详见 [域名访问诊断与恢复](DOMAIN_ACCESS.md)。
+
 ## 发布和回滚
 
 Docker 配置修改后使用 `docker compose config` 校验，再重新构建并启动服务。宿主机旧 Nginx 已停止并禁用，入口由 Compose 中的 `web` 容器提供。

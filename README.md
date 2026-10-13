@@ -12,6 +12,7 @@
 - 公开站点已部署至 `http://47.109.193.62/`，后台入口为 `http://47.109.193.62/admin/`；当前提供 HTTP 访问，HTTPS 需绑定域名并配置 TLS
 - 已加入 Docker Compose 生产编排：API、后台静态资源、自动构建器和 Nginx 可由一条命令启动
 - 2026-10-13 恢复 Docker socket 与服务启动，修复后台 API 代理、健康检查及 `/admin/` 静态资源路径；故障原因和恢复步骤见 [服务器部署说明](docs/DEPLOYMENT.md)。
+- 2026-10-13 排查 `www.tongxuan.me`：`www` A 记录已正确指向服务器，域名被注册商设为 `clientHold`，导致公网 DNS 返回 NXDOMAIN；需在阿里云域名控制台解除锁定后再配置 HTTPS。证据及恢复步骤见 [域名访问说明](docs/DOMAIN_ACCESS.md)。
 - 详细进度：见 [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md)
 
 ## 设计方向
@@ -53,6 +54,7 @@
 23. 增加 Docker Compose 生产编排和管理员登录：API 使用 Bearer 会话保护，后台登录调用真实 API；内容变化后构建器自动重建 Astro，Nginx 同时提供博客、后台和 API 代理。详见 [Docker 发布说明](docs/DOCKER_PUBLISHING.md)。
 24. 补齐专题、项目和记录的后台编辑器：支持字段校验、新建、修改和二次确认删除，在线时调用 FastAPI CRUD 并刷新公开快照，离线时保留会话内 Mock 操作；同时修复后台入口遗漏样式文件导致的无样式渲染。
 25. 恢复异常退出的 Docker socket 和 Docker 服务，让现有网站容器重新运行；修正 Nginx `/api/` 代理前缀，并为 `/api/health` 单独映射后端 `/health`；将后台 Vite 资源基址设为 `/admin/`，解决脚本和样式 404 导致的白屏。恢复过程保留原有数据库和文章内容，步骤见 [服务器部署说明](docs/DEPLOYMENT.md)。
+26. 对比 WHOIS、`.me` 注册局权威 DNS、阿里云权威 DNS 和强制域名指向 IP 的 HTTP 响应，定位 `www.tongxuan.me` 无法访问的原因为注册商 `clientHold`；确认首页、后台及健康检查正常，记录解锁和后续 HTTPS 验收顺序，见 [域名访问说明](docs/DOMAIN_ACCESS.md)。
 
 ## 求职材料
 
